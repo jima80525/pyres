@@ -53,6 +53,20 @@ def add_new_episode_data(cur, table, date, title, file, url):
           (date, title, file, url))
         print("after add")
 
+def find_episodes_to_download(cur, table):
+    '''Return a list of (url, filename) tuples for each file to be downloaded.
+    '''
+    episodes = list()
+    for row in  cur.execute("SELECT title, url from '%s' where state = 0" %
+                            (table)):
+        episodes.append(row)
+    return episodes
+
+def _update_state(cur, table, title, state):
+    cur.execute("UPDATE '%s' SET state=? where title = ?"%table, (state, title))
+
+def mark_episode_downloaded(cur, table, title):
+    _update_state(cur, table, title, 1)
 
 def delete_podcast(cur, name):
     '''Delete a podcast from the main table.  Also drops the episode table
