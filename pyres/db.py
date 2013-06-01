@@ -53,14 +53,19 @@ def add_new_episode_data(cur, table, date, title, file, url):
           (date, title, file, url))
         print("after add")
 
-def find_episodes_to_download(cur, table):
+def find_episodes_to_download(cur, table, path):
     '''Return a list of (url, filename) tuples for each file to be downloaded.
     '''
     episodes = list()
-    for row in  cur.execute("SELECT title, url from '%s' where state = 0" %
+    for row in  cur.execute("SELECT url, title from '%s' where state = 0" %
                             (table)):
-        episodes.append(row)
+        r = list(row)
+        r.append("%s\\%s.mp3"%(path, row[1]))
+        episodes.append(r)
     return episodes
+
+#def find_all_episodes_to_download(cur):
+
 
 def _update_state(cur, table, title, state):
     cur.execute("UPDATE '%s' SET state=? where title = ?"%table, (state, title))

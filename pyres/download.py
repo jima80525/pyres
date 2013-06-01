@@ -32,12 +32,10 @@ class Downloader(threading.Thread):
     #----------------------------------------------------------------------
     def download_file(self, podcast):
         """"""
-        (url, name) = podcast
+        (url, name, fname) = podcast
         handle = urllib2.urlopen(url)
-        fname = "Files\\"+name
         meta = handle.info()
         file_size = int(meta.getheaders("Content-Length")[0])
-        #print "%s: downloading to %s at size %d"%(self.name, fname, file_size)
         total = 0
         with open(fname, "wb") as f:
             while True:
@@ -58,7 +56,6 @@ class DisplayStatus():
         for ii in range(0, self.num):
             self.displays.append(["", 0, 0])
 
-    #def update(self, taskId, file_name, amt_read, total_size):
     def update(self, args):
         (taskId, file_name, amt_read, total_size) = args
         # update the info from this task
@@ -102,14 +99,10 @@ def download_url_list(urls):
     for url in urls:
         queue.put(url)
 
-    #while not queue.unfinished_tasks:
-    #while not queue.empty() or not outQueue.empty():
     while queue.unfinished_tasks or outQueue.unfinished_tasks:
         if outQueue.empty():
             time.sleep(1)
         else:
-            #(taskId, file_name, amt_read, total_size) = outQueue.get(True, 1)
-            #status.update(taskId, file_name, amt_read, total_size)
             update = outQueue.get(True, 1)
             status.update(update)
             outQueue.task_done()
