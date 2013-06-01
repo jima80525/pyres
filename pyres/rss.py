@@ -5,6 +5,17 @@ import urlparse
 import os
 import time
 import db
+import download
+import errno
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
 
 def process_feed(url):
     feed = feedparser.parse( url )
@@ -35,7 +46,7 @@ def process_feed(url):
 
 urls = (
     "http://rss.sciam.com/sciam/60-second-psych",
-    "http://thehistoryofbyzantium.wordpress.com/feed/",
+    #"http://thehistoryofbyzantium.wordpress.com/feed/",
 )
 
 def dateToStr(d):
@@ -55,24 +66,37 @@ def add_episodes_from_feed(cur, url):
         db.add_new_episode_data(cur, name, dateToStr(p[0]), p[1], "", p[2])
 
 conn, cur = db.open_podcasts('rss.db')
-#for u in urls:
-    #add_episodes_from_feed(cur, u)
+for u in urls:
+    add_episodes_from_feed(cur, u)
 
 pcs = db.get_podcast_names(cur)
+base_file_directory = "Files\\"
 
+
+toMark = True
 for podcast in pcs:
-    episodes = db.find_episodes_to_download(cur, podcast)
-    toMark = True
+    # get the path and make sure it exists
+    path = base_file_directory + podcast
+    mkdir_p(path)
+
+    episodes = db.find_episodes_to_download(cur, podcast, path)
     print "----------------------------------------"
     print podcast
     print "----------------------------------------"
     for e in episodes:
         if toMark:
-            db.mark_episode_downloaded(cur, podcast, e[0])
+            print e
+            #fname = "%s\\%s.mp3"%(path, e[1])
+            #f = list(e)
+            #f.append(fname)
+            #toget = (f,)
+            #download.download_url_list(toget)
+
+            db.mark_episode_downloaded(cur, podcast, e[1])
             print e, "MARKED"
             toMark = False
-        else:
-            print e
+        #else:
+            #print e
 
     print
 
