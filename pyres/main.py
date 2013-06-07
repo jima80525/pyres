@@ -17,74 +17,7 @@ import rss
 import wx
 import wx.lib.mixins.listctrl as listmix
 
-musicdata = {
-0 : ("Bad English", "The Price Of Love", "Rock"),
-1 : ("DNA featuring Suzanne Vega", "Tom's Diner", "Rock"),
-2 : ("George Michael", "Praying For Time", "Rock"),
-3 : ("Gloria Estefan", "Here We Are", "Rock"),
-4 : ("Linda Ronstadt", "Don't Know Much", "Rock"),
-5 : ("Michael Bolton", "How Am I Supposed To Live Without You", "Blues"),
-6 : ("Paul Young", "Oh Girl", "Rock"),
-}
-
 ########################################################################
-class TestListCtrl(wx.ListCtrl):
-
-    #----------------------------------------------------------------------
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-
-########################################################################
-class TestListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
-
-    #----------------------------------------------------------------------
-    def __init__(self, parent):
-        #wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
-        wx.Panel.__init__(self, parent, -1)
-
-        self.index = 0
-
-        #self.list_ctrl = TestListCtrl(self, size=(-1,100),
-        #self.list_ctrl = wx.ListCtrl(self, size=(-1,100),
-        self.list_ctrl = wx.ListCtrl(self, 1, wx.DefaultPosition, (-1, -1),
-                         style=wx.LC_REPORT
-                         #|wx.BORDER_SUNKEN
-                         |wx.LC_SORT_ASCENDING
-                         )
-        self.list_ctrl.InsertColumn(0, "Artist")
-        self.list_ctrl.InsertColumn(1, "Title", wx.LIST_FORMAT_RIGHT)
-        self.list_ctrl.InsertColumn(2, "Genre")
-
-        items = musicdata.items()
-        index = 0
-        for key, data in items:
-            self.list_ctrl.InsertStringItem(index, data[0])
-            self.list_ctrl.SetStringItem(index, 1, data[1])
-            self.list_ctrl.SetStringItem(index, 2, data[2])
-            self.list_ctrl.SetItemData(index, key)
-            index += 1
-
-        # Now that the list exists we can init the other base class,
-        # see wx/lib/mixins/listctrl.py
-        self.itemDataMap = musicdata
-        listmix.ColumnSorterMixin.__init__(self, 3)
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_ctrl)
-
-        #sizer = wx.BoxSizer(wx.VERTICAL)
-        #sizer.Add(self.list_ctrl, 0, wx.ALL|wx.EXPAND, 5)
-        #self.SetSizer(sizer)
-
-    #----------------------------------------------------------------------
-    # Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py
-    def GetListCtrl(self):
-        return self.list_ctrl
-
-    #----------------------------------------------------------------------
-    def OnColClick(self, event):
-        print "column clicked"
-        event.Skip()
-
 ########################################################################
 
 
@@ -99,26 +32,13 @@ urls = (
     "http://thehistoryofbyzantium.wordpress.com/feed/",
 )
 
-#---------------------------------------------------
-#def dummy():
-    #pcs = db.get_podcast_names(cur)
-
-    #for podcast in pcs:
-        #episodes = db.find_episodes_to_download(cur, podcast)
-        #toMark = True
-        #print "----------------------------------------"
-        #print podcast
-        #print "----------------------------------------"
-        #for e in episodes:
-            #if toMark:
-                #db.mark_episode_downloaded(cur, podcast, e[0])
-                #print e, "MARKED"
-                #toMark = False
-            #else:
-                #print e
-
-        #print
-#---------------------------------------------------
+state_to_string = {
+    0 : "To Download",
+    1 : "Downloaded",
+    2 : "Copied to Device",
+    3 : "Finished",
+    4 : "Unknown"
+}
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -182,26 +102,15 @@ class MyFrame(wx.Frame):
         tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged, id=1)
         return tree
 
-    def InitListCtrl(self, panel):
+    def InitListCtrl(self, panel, episodes=None):
         self.index = 0
 
         list_ctrl = wx.ListCtrl(panel, 1,
                          style=wx.LC_REPORT
-                         #|wx.BORDER_SUNKEN
                          |wx.LC_SORT_ASCENDING
                          )
-        list_ctrl.InsertColumn(0, "Artist")
-        list_ctrl.InsertColumn(1, "Title", wx.LIST_FORMAT_RIGHT)
-        list_ctrl.InsertColumn(2, "Genre")
-
-        items = musicdata.items()
-        index = 0
-        for key, data in items:
-            list_ctrl.InsertStringItem(index, data[0])
-            list_ctrl.SetStringItem(index, 1, data[1])
-            list_ctrl.SetStringItem(index, 2, data[2])
-            list_ctrl.SetItemData(index, key)
-            index += 1
+        list_ctrl.InsertColumn(0, "Title", wx.LIST_FORMAT_RIGHT)
+        list_ctrl.InsertColumn(1, "State")
 
         # Now that the list exists we can init the other base class,
         # see wx/lib/mixins/listctrl.py
@@ -210,21 +119,35 @@ class MyFrame(wx.Frame):
         #self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, list_ctrl)
         return list_ctrl
 
+    def StateToString(self, state):
+        return state_to_string[state]
+        #if state == 0:
+            #return "to download"
+        #return "unknown state"
+
+    def FillInListData(self, episodes):
+        self.list.DeleteAllItems()
+        index = 0
+        for data in episodes:
+            pos = self.list.InsertStringItem(index, data[0])
+            self.list.SetStringItem(pos, 1, state_to_string[data[1]])
+            self.list.SetItemData(index, index)
+            index += 1
+
+    def OnTreeSelChanged(self, event):
+        item =  event.GetItem()
+        itemText = self.tree.GetItemText(item)
+        if "Podcasts" not in itemText:
+            episodes = db.find_episodes_and_states(self.cur, self.tree.GetItemText(item))
+            self.FillInListData(episodes)
+
     def InitMenus(self):
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
         fitem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(fileMenu, '&File')
         self.SetMenuBar(menubar)
-
         self.Bind(wx.EVT_MENU, self.OnQuit, fitem)
-
-
-    def OnTreeSelChanged(self, event):
-        item =  event.GetItem()
-        print "selchanged"
-        print item
-        #self.display.SetLabel(self.tree.GetItemText(item))
 
     def OnQuit(self, e):
         db.close_podcasts(self.conn)

@@ -64,6 +64,16 @@ def find_episodes_to_download(cur, table, path):
         episodes.append(r)
     return episodes
 
+def find_episodes_and_states(cur, table):
+    '''Return a list of (title, state) tuples for episodes in specified table.
+    '''
+    episodes = list()
+    for row in  cur.execute("SELECT title,state from '%s' where state = 0" %
+                            (table)):
+        r = list(row)
+        episodes.append(r)
+    return episodes
+
 #def find_all_episodes_to_download(cur):
 
 
