@@ -102,7 +102,7 @@ class MyFrame(wx.Frame):
         tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged, id=1)
         return tree
 
-    def InitListCtrl(self, panel, episodes=None):
+    def InitListCtrl(self, panel):
         self.index = 0
 
         list_ctrl = wx.ListCtrl(panel, 1,
@@ -118,12 +118,6 @@ class MyFrame(wx.Frame):
         #listmix.ColumnSorterMixin.__init__(self, 3)
         #self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, list_ctrl)
         return list_ctrl
-
-    def StateToString(self, state):
-        return state_to_string[state]
-        #if state == 0:
-            #return "to download"
-        #return "unknown state"
 
     def FillInListData(self, episodes):
         self.list.DeleteAllItems()
