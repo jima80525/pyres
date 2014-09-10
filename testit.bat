@@ -1,6 +1,7 @@
 @echo OFF
-\Python27\Scripts\pylint --rcfile pylint.rc pyres\db.py
-REM \Python27\Scripts\pylint --rcfile pylint.rc pyres\feeder.py
+REM \Python27\Scripts\pylint --rcfile pylint.rc pyres\*.py
 REM
-\Python27\python -m unittest discover -s test
+REM echo Running test
+REM \Python27\python -m unittest discover -s test
+\Python27\python main.py %*
 

@@ -33,7 +33,8 @@ load-plugins=
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-#disable=
+# disable the warning that I'm disabling a warning locally.
+disable=I0011
 
 
 [REPORTS]
