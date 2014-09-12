@@ -95,6 +95,21 @@ def display_database():
     pyres.db.close_podcasts(conn)
 
 
+def add_url(url, start_date):
+    """ add a new podcast to the system """
+    print("in add url with %s %s" % (url, start_date))
+    # if there is no cursor passed in, this was requested from the command line
+    # open the database here.  If there was a cursor, then conn will stay None
+    # and we won't close it
+    #connection = None
+    #if not cursor:
+        #connection, cursor = pyres.db.open_podcasts('rss.db')
+    #for url in URLS:
+        #add_episodes_from_feed(cursor, url)
+    #if connection:
+        #pyres.db.close_podcasts(connection)
+    #print "done In add defaults"
+
 def add_default_urls_to_database(cursor = None):
     """ Debug routine to add a set of test urls to the database """
     print "In add defaults"
@@ -111,6 +126,7 @@ def add_default_urls_to_database(cursor = None):
     print "done In add defaults"
 
 #JHA - TODO
+# - redo db.py to make it a class - it can hold cur and conn!
 # * first lines here can be moved into a "add urls to db" command.
 # * the need a "find episodes to download"
 # * need to create a "add new url" function to replace first with outside url
@@ -137,9 +153,12 @@ def process_rss_feeds():
         print podcast
         print "----------------------------------------"
         print "about to download"
-        pyres.download.download_url_list(episodes)
-        print "done"
-        return
+        #pyres.download.download_url_list(episodes)
+        #print "done"
+
+    pyres.db.close_podcasts(connection)
+
+def dummy():
         for episode in episodes:
             if to_mark:
                 print "HERE IS EPISODE"
@@ -160,12 +179,6 @@ def process_rss_feeds():
                 #else:
                 #print episode
 
-        print
-
-
-    # pyres.db.show_podcasts(cur)
-
-    pyres.db.close_podcasts(connection)
 
 #feed = feedparser.parse(python_wiki_rss_url)
 

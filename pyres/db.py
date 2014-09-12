@@ -21,10 +21,6 @@ def open_podcasts(filename):
         pass
     return conn, cur
 
-
-# Create table
-# c.execute('''CREATE TABLE podcasts (name text, url text, what real)''')
-
 def add_podcast(cur, name, url, what):
     """Add a new podcast url to the database and set up a table to track
        episodes.
@@ -56,7 +52,6 @@ def add_new_episode_data(cur, table, date, title, url):
         cur.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, 0)" % table,
                     (date, title, filename, url))
 
-
 def find_episodes_to_download(cur, table, path):
     """Return a list of (url, filename) tuples for each file to be downloaded.
     """
@@ -68,9 +63,6 @@ def find_episodes_to_download(cur, table, path):
         row_list.append("%s\\%s.mp3" % (path, row[1]))
         episodes.append(row_list)
     return episodes
-
-
-# def find_all_episodes_to_download(cur):
 
 
 def _update_state(cur, table, title, state):
