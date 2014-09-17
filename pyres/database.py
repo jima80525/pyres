@@ -26,6 +26,7 @@ class PodcastDatabase(object):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
+        # JHA TODO - roll back on exception instead of committing
         print "in exit"
         self.connection.commit()
         self.connection.close()
