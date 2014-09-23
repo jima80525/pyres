@@ -2,11 +2,12 @@
 Implements an abstraction to the database.
 """
 import sqlite3
+import pyres.episode as mod_episode
+import pyres.utils as utils
 
 class PodcastDatabase(object):
     """ Class to encapsulate access to database """
     def __init__(self, file_name):
-        print "incstor"
         if not file_name:
             raise AttributeError()
 
@@ -17,21 +18,19 @@ class PodcastDatabase(object):
         # Create it if not
         try:
             self.cursor.execute("CREATE TABLE podcasts (name text, url " \
-                                "text, what real)")
+                                "text)")
         except sqlite3.OperationalError:
             pass
 
     def __enter__(self):
-        print "in enter"
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         # JHA TODO - roll back on exception instead of committing
-        print "in exit"
         self.connection.commit()
         self.connection.close()
 
-    def add_podcast(self, name, url, what):
+    def add_podcast(self, name, url):
         """Add a new podcast url to the database and set up a table to track
            episodes.
         """
@@ -44,36 +43,36 @@ class PodcastDatabase(object):
         if check1 is not None:
             return  # already exists
 
-        self.cursor.execute("INSERT INTO podcasts VALUES (?, ?, ?)",
-                            (name, url, what))
+        self.cursor.execute("INSERT INTO podcasts VALUES (?, ?)",
+                            (name, url))
         self.cursor.execute("CREATE TABLE '%s' (date text, title text, file "
                             "text, url text, state integer)" % name)
 
-
-    def add_new_episode_data(self, table, date, title, url):
+    def add_new_episode_data(self, table, episode):
         """Add the episode data if not already present.  If the episode is
         present, do nothing.
         """
-        filename = date.replace(":", "_").replace("/", "_")
         self.cursor.execute("SELECT * from '%s' where date = '%s'" % \
-                            (table, date))
+                            (table, episode.date))
         check1 = self.cursor.fetchone()
         if check1 is None:
-            print("Added %s" % title)
-            self.cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, 0)" % \
-                                table, (date, title, filename, url))
+            self.cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?)" % \
+                                table, episode.as_list())
+            print("Added %s" % episode.title)
 
-    def find_episodes_to_download(self, table, path):
+    def find_episodes_to_download(self, table):
         """Return a list of (url, filename) tuples for each file to be
         downloaded.
         """
         episodes = list()
         assert isinstance(table, object)
-        for row in self.cursor.execute("SELECT url, file from '%s' where " \
+        for row in self.cursor.execute("SELECT * from '%s' where " \
                                        "state = 0" % table):
             row_list = list(row)
-            row_list.append("%s\\%s.mp3" % (path, row[1]))
-            episodes.append(row_list)
+            episodes.append(
+                mod_episode.Episode(date=utils.string_to_date(row_list[0]),
+                                title=row_list[1], file_name=row_list[2],
+                                url=row_list[3], state=row_list[4]))
         return episodes
 
 
@@ -89,14 +88,15 @@ class PodcastDatabase(object):
                             (state, title))
 
 
-    def mark_episode_downloaded(self, table, title):
+    def mark_episode_downloaded(self, table, episode):
         """
 
         :param cur:
         :param table:
         :param title:
         """
-        self._update_state(table, title, 1)
+        print("in mark with %s %s" % (table, episode.title))
+        self._update_state(table, episode.title, 1)
 
 
     def delete_podcast(self, name):
@@ -136,6 +136,6 @@ if __name__ == "__main__":
     print "JHA TODO"
     #CONNECTION, CURSOR = open_podcasts('example.db')
     #show_podcasts(CURSOR)
-    #add_podcast(CURSOR, 'pc1', u"pc1url", 19)
+    #add_podcast(CURSOR, 'pc1', u"pc1url")
     #delete_podcast(CURSOR, 'pc1')
     #close_podcasts(CONNECTION)

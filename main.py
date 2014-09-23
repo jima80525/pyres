@@ -7,15 +7,12 @@ import time
 
 def cmd_string_to_date(date_string):
     """ Convert a formatted string into a date."""
-    #return time.strptime(date_string, "%m/%d/%y")
     return time.strptime(date_string, "%x")
 
 def parse_command_line():
     parser = argparse.ArgumentParser(description='Pyres podcast manager.')
     parser.add_argument('-d', '--database-dump', action='store_true',
                         help="print contents of database and exit")
-    parser.add_argument('--default-urls', action='store_true',
-                        help="add default podcasts to database for testing")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="print debug output while processing")
     parser.add_argument('-a', '--add-url', action='store',
@@ -30,12 +27,11 @@ def parse_command_line():
 
 if __name__ == "__main__":
     args = parse_command_line()
+    pyres = pyres.rss.RssFeed()
     # JHA TODO get logging working with verbose flag
     if args.database_dump:
-        pyres.rss.display_database()
-    elif args.default_urls:
-        pyres.rss.add_default_urls_to_database()
+        pyres.display_database()
     elif args.add_url:
-        pyres.rss.add_url(args.add_url, args.start_date)
+        pyres.add_url(args.add_url, args.start_date)
     else:
-        pyres.rss.process_rss_feeds()
+        pyres.process_rss_feeds()
