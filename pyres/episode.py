@@ -44,4 +44,4 @@ class Episode(object):
 
 
 if __name__ == "__main__":
-    print "JHA TODO"
+    print "Not Implemented"

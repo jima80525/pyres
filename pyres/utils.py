@@ -34,4 +34,4 @@ def date_as_string(value):
     return time.strftime("%x:%X", value)
 
 if __name__ == "__main__":
-    print "JIMA TODO"
+    print "Not Implemented"

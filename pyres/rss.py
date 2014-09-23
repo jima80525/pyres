@@ -98,7 +98,6 @@ class RssFeed(object):
                 downloader = pyres.download.PodcastDownloader(episodes)
                 downloader.download_url_list()
                 for episode in downloader.return_successful_files():
-                    # JHA TODO mark episode has not yet worked
                     database.mark_episode_downloaded(podcast, episode)
                     print episode.file_name
 

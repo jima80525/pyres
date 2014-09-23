@@ -17,8 +17,8 @@ class PodcastDatabase(object):
         # test to ensure that the main podcasts table exists
         # Create it if not
         try:
-            self.cursor.execute("CREATE TABLE podcasts (name text, url " \
-                                "text)")
+            self.connection.execute("CREATE TABLE podcasts (name text, url " \
+                                    "text)")
         except sqlite3.OperationalError:
             pass
 
@@ -26,8 +26,10 @@ class PodcastDatabase(object):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
-        # JHA TODO - roll back on exception instead of committing
-        self.connection.commit()
+        if not exception_type:
+            self.connection.commit()
+        else:
+            self.connection.rollback()
         self.connection.close()
 
     def add_podcast(self, name, url):
@@ -37,42 +39,48 @@ class PodcastDatabase(object):
         if not name or not url:
             raise AttributeError()
 
-        # make sure this podcast isn't already there
-        self.cursor.execute("Select * from podcasts where name = ?", (name, ))
-        check1 = self.cursor.fetchone()
-        if check1 is not None:
-            return  # already exists
+        with self.connection:
+            cursor = self.connection.cursor()
 
-        self.cursor.execute("INSERT INTO podcasts VALUES (?, ?)",
-                            (name, url))
-        self.cursor.execute("CREATE TABLE '%s' (date text, title text, file "
-                            "text, url text, state integer)" % name)
+            # make sure this podcast isn't already there
+            cursor.execute("Select * from podcasts where name = ?", (name, ))
+            check1 = cursor.fetchone()
+            if check1 is not None:
+                return  # already exists
+
+            cursor.execute("INSERT INTO podcasts VALUES (?, ?)", (name, url))
+            cursor.execute("CREATE TABLE '%s' (date text, title text, file "
+                           "text, url text, state integer)" % name)
 
     def add_new_episode_data(self, table, episode):
         """Add the episode data if not already present.  If the episode is
         present, do nothing.
         """
-        self.cursor.execute("SELECT * from '%s' where date = '%s'" % \
-                            (table, episode.date))
-        check1 = self.cursor.fetchone()
-        if check1 is None:
-            self.cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?)" % \
-                                table, episode.as_list())
-            print("Added %s" % episode.title)
+        with self.connection:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT * from '%s' where date = '%s'" % \
+                           (table, episode.date))
+            check1 = cursor.fetchone()
+            if check1 is None:
+                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?)" % \
+                               table, episode.as_list())
+                print("Added %s" % episode.title)
 
     def find_episodes_to_download(self, table):
         """Return a list of (url, filename) tuples for each file to be
         downloaded.
         """
         episodes = list()
-        assert isinstance(table, object)
-        for row in self.cursor.execute("SELECT * from '%s' where " \
-                                       "state = 0" % table):
-            row_list = list(row)
-            episodes.append(
-                mod_episode.Episode(date=utils.string_to_date(row_list[0]),
-                                title=row_list[1], file_name=row_list[2],
-                                url=row_list[3], state=row_list[4]))
+        with self.connection:
+            cursor = self.connection.cursor()
+            for row in cursor.execute("SELECT * from '%s' where " \
+                                      "state = 0" % table):
+                row_list = list(row)
+                episodes.append(
+                    mod_episode.Episode(date=utils.string_to_date(row_list[0]),
+                                        title=row_list[1],
+                                        file_name=row_list[2], url=row_list[3],
+                                        state=row_list[4]))
         return episodes
 
 
@@ -84,8 +92,9 @@ class PodcastDatabase(object):
         :param title:
         :param state:
         """
-        self.cursor.execute("UPDATE '%s' SET state=? where title = ?" % table,
-                            (state, title))
+        with self.connection:
+            self.connection.execute("UPDATE '%s' SET state=? where title = ?" \
+                                    % table, (state, title))
 
 
     def mark_episode_downloaded(self, table, episode):
@@ -103,39 +112,36 @@ class PodcastDatabase(object):
         """Delete a podcast from the main table.  Also drops the episode table
            for this podcast.
         """
-        self.cursor.execute("DELETE FROM podcasts WHERE name='%s'" % name)
-        self.cursor.execute("DROP TABLE '%s'" % name)
+        with self.connection:
+            cursor = self.connection.cursor()
+            cursor.execute("DELETE FROM podcasts WHERE name='%s'" % name)
+            cursor.execute("DROP TABLE '%s'" % name)
 
 
     def get_podcast_names(self):
         """Return a list of podcasts
         """
         names = list()
-        for row in self.cursor.execute('SELECT * FROM podcasts ORDER BY name'):
-            names.append(row[0])
+        with self.connection:
+            cursor = self.connection.cursor()
+            for name in cursor.execute('SELECT name FROM podcasts ORDER BY '
+                                       'name'):
+                names.append(name)
         return names
 
 
     def show_podcasts(self):
         """Display information from database.
         """
-        # jha this can probably be done in one call with a clever join.
-        # Not tonight.
-        names = list()
-        for name in self.cursor.execute( \
-            'SELECT name FROM podcasts ORDER BY name'):
-            names.append(name)
-        for name in names:
-            print
-            print name
-            for podcast in self.cursor.execute("SELECT * FROM '%s'" % name):
-                print podcast
+        names = self.get_podcast_names()
+        with self.connection:
+            cursor = self.connection.cursor()
+            for name in names:
+                print
+                print name
+                for podcast in cursor.execute("SELECT * FROM '%s'" % name):
+                    print podcast
 
 
 if __name__ == "__main__":
-    print "JHA TODO"
-    #CONNECTION, CURSOR = open_podcasts('example.db')
-    #show_podcasts(CURSOR)
-    #add_podcast(CURSOR, 'pc1', u"pc1url")
-    #delete_podcast(CURSOR, 'pc1')
-    #close_podcasts(CONNECTION)
+    print "Not Implemented"
