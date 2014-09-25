@@ -54,7 +54,7 @@ class Downloader(threading.Thread):
             return
 
         meta = handle.info()
-        episode.file_size = int(meta.getheaders("Content-Length")[0])
+        episode.size = int(meta.getheaders("Content-Length")[0])
         total = 0
         try:
             with open(episode.file_name, "wb") as podcast_file:
@@ -107,7 +107,7 @@ class DisplayStatus(object):
         (_, file_name) = os.path.split(episode.file_name)
         self.displays[task_id][0] = file_name
         self.displays[task_id][1] = amt_read
-        self.displays[task_id][2] = episode.file_size
+        self.displays[task_id][2] = episode.size
 
         # now display all of them
         display_str = self.progress_string
@@ -161,7 +161,7 @@ class PodcastDownloader(object):
                 # if total length is 0, there was an error
                 if episode.error_msg:
                     self.failed_files.append(episode)
-                elif current_size == episode.file_size:
+                elif current_size == episode.size:
                     # if length read is total length - save name
                     self.successful_files.append(episode)
                     self.status.increment_success()

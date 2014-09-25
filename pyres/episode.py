@@ -11,8 +11,11 @@ class Episode(object):
         self.title = kwargs['title']
         self.url = kwargs['url']
         # set file size and error_msg to None at first
-        self.file_size = None
         self.error_msg = None
+        if 'size' in kwargs:
+            self.size = kwargs['size']
+        else:
+            self.size = None
         if 'state' in kwargs:
             self.state = kwargs['state']
         else:
@@ -36,7 +39,7 @@ class Episode(object):
         database.
         """
         return (utils.date_as_string(self.date), self.title, self.file_name,
-                self.url, self.state)
+                self.url, self.size, self.state)
 
     def debug_display(self):
         """ Print current info of episode to logging """

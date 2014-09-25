@@ -77,9 +77,7 @@ class RssFeed(object):
         with pyres.database.PodcastDatabase('rss.db') as database:
             self.add_episodes_from_feed(database, url, start_date)
 
-    # TODO - add file size and error_msg to database table
     # TODO - get logging figured out
-    # TODO - consider moving context mgmt here
     # TODO - * then need a "copy to mp3 player and mark state as copied"
     # TODO - * then a "remove from mp3 player and harddrive and mark state as
     #        heard"

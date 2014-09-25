@@ -50,7 +50,8 @@ class PodcastDatabase(object):
 
             cursor.execute("INSERT INTO podcasts VALUES (?, ?)", (name, url))
             cursor.execute("CREATE TABLE '%s' (date text, title text, file "
-                           "text, url text, state integer)" % name)
+                           "text, url text, size integer, state integer)" \
+                           % name)
 
     def add_new_episode_data(self, table, episode):
         """Add the episode data if not already present.  If the episode is
@@ -62,7 +63,7 @@ class PodcastDatabase(object):
                            (table, episode.date))
             check1 = cursor.fetchone()
             if check1 is None:
-                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?)" % \
+                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" % \
                                table, episode.as_list())
                 print("Added %s" % episode.title)
 
@@ -80,32 +81,29 @@ class PodcastDatabase(object):
                     mod_episode.Episode(date=utils.string_to_date(row_list[0]),
                                         title=row_list[1],
                                         file_name=row_list[2], url=row_list[3],
-                                        state=row_list[4]))
+                                        size=row_list[4], state=row_list[5]))
         return episodes
 
 
-    def _update_state(self, table, title, state):
-        """
+    def _update_size(self, table, title, size):
+        """ change state of podcast """
+        print("In update size with %s %s %d" % (table, title, size))
+        with self.connection:
+            self.connection.execute("UPDATE '%s' SET size=? where title = ?" \
+                                    % table, (size, title))
 
-        :param cur:
-        :param table:
-        :param title:
-        :param state:
-        """
+    def _update_state(self, table, title, state):
+        """ change state of podcast """
         with self.connection:
             self.connection.execute("UPDATE '%s' SET state=? where title = ?" \
                                     % table, (state, title))
 
 
     def mark_episode_downloaded(self, table, episode):
-        """
-
-        :param cur:
-        :param table:
-        :param title:
-        """
+        """ update state to downloaded and update size """
         print("in mark with %s %s" % (table, episode.title))
         self._update_state(table, episode.title, 1)
+        self._update_size(table, episode.title, episode.size)
 
 
     def delete_podcast(self, name):
