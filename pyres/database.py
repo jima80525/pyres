@@ -2,6 +2,7 @@
 Implements an abstraction to the database.
 """
 import sqlite3
+import logging
 import pyres.episode as mod_episode
 import pyres.utils as utils
 
@@ -65,7 +66,7 @@ class PodcastDatabase(object):
             if check1 is None:
                 cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" % \
                                table, episode.as_list())
-                print("Added %s" % episode.title)
+                logging.debug("Added %s", episode.title)
 
     def find_episodes_to_download(self, table):
         """Return a list of (url, filename) tuples for each file to be
@@ -87,7 +88,7 @@ class PodcastDatabase(object):
 
     def _update_size(self, table, title, size):
         """ change state of podcast """
-        print("In update size with %s %s %d" % (table, title, size))
+        logging.debug("In update size with %s %s %d", table, title, size)
         with self.connection:
             self.connection.execute("UPDATE '%s' SET size=? where title = ?" \
                                     % table, (size, title))
@@ -101,7 +102,7 @@ class PodcastDatabase(object):
 
     def mark_episode_downloaded(self, table, episode):
         """ update state to downloaded and update size """
-        print("in mark with %s %s" % (table, episode.title))
+        logging.debug("in mark with %s %s", table, episode.title)
         self._update_state(table, episode.title, 1)
         self._update_size(table, episode.title, episode.size)
 
@@ -124,7 +125,7 @@ class PodcastDatabase(object):
             cursor = self.connection.cursor()
             for name in cursor.execute('SELECT name FROM podcasts ORDER BY '
                                        'name'):
-                names.append(name)
+                names.append(name[0])
         return names
 
 

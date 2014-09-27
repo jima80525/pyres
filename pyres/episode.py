@@ -2,6 +2,7 @@
 Class representing a single episode of a podcast
 """
 import os
+import logging
 import pyres.utils as utils
 
 class Episode(object):
@@ -43,7 +44,7 @@ class Episode(object):
 
     def debug_display(self):
         """ Print current info of episode to logging """
-        print self.as_list()
+        logging.debug(self.as_list())
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ Tool to download and manage podcasts.
 """
 import feedparser
 import os
+import logging
 import time
 import pyres.database
 import pyres.download
@@ -47,7 +48,7 @@ class RssFeed(object):
                                                       url=link))
 
             except KeyError:
-                print "Failed processing feed title"
+                logging.error("Failed processing feed title")
                 raise
         return podcast_name, episodes
 
@@ -62,7 +63,7 @@ class RssFeed(object):
         for episode in episodes:
             # when comparing,  date None is always the least
             if start_date < episode.date:
-                print("Adding %s" % utils.date_as_string(episode.date))
+                logging.debug("Adding %s", utils.date_as_string(episode.date))
                 database.add_new_episode_data(name, episode)
 
     @staticmethod
@@ -73,11 +74,10 @@ class RssFeed(object):
 
     def add_url(self, url, start_date):
         """ add a new podcast to the system """
-        print("in add url with %s %s" % (url, start_date))
+        logging.debug("in add url with %s %s", url, start_date)
         with pyres.database.PodcastDatabase('rss.db') as database:
             self.add_episodes_from_feed(database, url, start_date)
 
-    # TODO - get logging figured out
     # TODO - * then need a "copy to mp3 player and mark state as copied"
     # TODO - * then a "remove from mp3 player and harddrive and mark state as
     #        heard"
