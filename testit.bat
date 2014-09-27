@@ -1,5 +1,5 @@
 @echo OFF
-REM \Python27\Scripts\pylint --rcfile pylint.rc pyres\*.py
+\Python27\Scripts\pylint --rcfile pylint.rc pyres\*.py
 REM
 REM echo Running test
 REM \Python27\python -m unittest discover -s test
