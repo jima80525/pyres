@@ -9,6 +9,7 @@ def cmd_string_to_date(date_string):
     """ Convert a formatted string into a date."""
     return time.strptime(date_string, "%x")
 
+# JHA TODO add subcommands for different stages
 def parse_command_line():
     parser = argparse.ArgumentParser(description='Pyres podcast manager.')
     parser.add_argument('-d', '--database-dump', action='store_true',
@@ -20,6 +21,8 @@ def parse_command_line():
     parser.add_argument('--start-date', action='store',
                         type=cmd_string_to_date,
                         help="date before first podcast to download")
+    parser.add_argument('-w', '--download', action='store_true',
+                        help="Download episodes to mp3 player")
 
 
     args = parser.parse_args()
@@ -33,5 +36,7 @@ if __name__ == "__main__":
         pyres.display_database()
     elif args.add_url:
         pyres.add_url(args.add_url, args.start_date)
+    elif args.download:
+        pyres.download_to_player()
     else:
         pyres.process_rss_feeds()

@@ -8,6 +8,7 @@ import time
 import pyres.database
 import pyres.download
 import pyres.episode
+import pyres.filemanager
 import pyres.utils as utils
 
 class RssFeed(object):
@@ -20,9 +21,13 @@ class RssFeed(object):
         Pull down the rss feed and add return episodes
         """
         feed = feedparser.parse(url)
+        # get name and clean out any characters we don't like before we start
+        # using it.
         podcast_name = feed['channel']['title']
-        podcast_path_name = os.path.join(self.base_dir,
-                                         utils.clean_name(podcast_name))
+        podcast_name = utils.clean_name(podcast_name)
+
+        # now we can use it for the path
+        podcast_path_name = os.path.join(self.base_dir, podcast_name)
 
         # create the podcast directory as long as we're here
         utils.mkdir_p(podcast_path_name)
@@ -45,7 +50,8 @@ class RssFeed(object):
                 episodes.append(pyres.episode.Episode(base_path=\
                                                       podcast_path_name,
                                                       date=date, title=title,
-                                                      url=link))
+                                                      url=link,
+                                                      podcast=podcast_name))
 
             except KeyError:
                 logging.error("Failed processing feed title")
@@ -59,12 +65,21 @@ class RssFeed(object):
         # adds table for podcast - likely to exist already
         database.add_podcast(name, url)
 
+        print("Adding %s: " % name),
+
+        episodes_added = 0
         # for each podcast in this feed - add it to databse
         for episode in episodes:
             # when comparing,  date None is always the least
             if start_date < episode.date:
                 logging.debug("Adding %s", utils.date_as_string(episode.date))
                 database.add_new_episode_data(name, episode)
+                episodes_added += 1
+        if start_date:
+            print(" %d episodes since %s" % \
+                  (episodes_added, utils.date_as_string(start_date)))
+        else:
+            print(" %d episodes returned" % (episodes_added))
 
     @staticmethod
     def display_database():
@@ -78,9 +93,6 @@ class RssFeed(object):
         with pyres.database.PodcastDatabase('rss.db') as database:
             self.add_episodes_from_feed(database, url, start_date)
 
-    # TODO - * then need a "copy to mp3 player and mark state as copied"
-    # TODO - * then a "remove from mp3 player and harddrive and mark state as
-    #        heard"
     @staticmethod
     def process_rss_feeds():
         """ Main routine for program """
@@ -88,16 +100,36 @@ class RssFeed(object):
 
             podcasts = database.get_podcast_names()
 
+            episodes = list()
+
             for podcast in podcasts:
-                episodes = database.find_episodes_to_download(podcast)
+                tmp_list = database.find_episodes_to_download(podcast)
+                episodes += tmp_list
+                print("%s: %d episodes to download" % (podcast, len(tmp_list)))
+            downloader = pyres.download.PodcastDownloader(episodes)
+            downloader.download_url_list()
+            for episode in downloader.return_successful_files():
+                database.mark_episode_downloaded(episode)
+                print episode.file_name
+
+# TODO - move top level functionality to pyres class and leave the feed reader
+# stuff here
+    @staticmethod
+    def download_to_player():
+        """ copy episodes to mp3 player """
+        with pyres.database.PodcastDatabase('rss.db') as database:
+
+            podcasts = database.get_podcast_names()
+            episodes = list()
+            filemgr = pyres.filemanager.FileManager()
+
+            for podcast in podcasts:
+                episodes += database.find_episodes_to_copy(podcast)
                 print "----------------------------------------"
                 print podcast
                 print "----------------------------------------"
-                downloader = pyres.download.PodcastDownloader(episodes)
-                downloader.download_url_list()
-                for episode in downloader.return_successful_files():
-                    database.mark_episode_downloaded(podcast, episode)
-                    print episode.file_name
+
+            filemgr.copy_files_to_player(episodes)
 
 if __name__ == "__main__":
     FEED = RssFeed()

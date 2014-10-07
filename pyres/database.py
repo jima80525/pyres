@@ -69,6 +69,14 @@ class PodcastDatabase(object):
                 logging.debug("Added %s", episode.title)
 
     def find_episodes_to_download(self, table):
+        """ returns a list of episodes read to download """
+        return self.find_episodes(table, 0)
+
+    def find_episodes_to_copy(self, table):
+        """ returns a list of episodes read to copy to mp3 player """
+        return self.find_episodes(table, 1)
+
+    def find_episodes(self, table, state):
         """Return a list of (url, filename) tuples for each file to be
         downloaded.
         """
@@ -76,11 +84,11 @@ class PodcastDatabase(object):
         with self.connection:
             cursor = self.connection.cursor()
             for row in cursor.execute("SELECT * from '%s' where " \
-                                      "state = 0" % table):
+                                      "state = %s" % (table, state)):
                 row_list = list(row)
                 episodes.append(
                     mod_episode.Episode(date=utils.string_to_date(row_list[0]),
-                                        title=row_list[1],
+                                        title=row_list[1], podcast=table,
                                         file_name=row_list[2], url=row_list[3],
                                         size=row_list[4], state=row_list[5]))
         return episodes
@@ -100,11 +108,11 @@ class PodcastDatabase(object):
                                     % table, (state, title))
 
 
-    def mark_episode_downloaded(self, table, episode):
+    def mark_episode_downloaded(self, episode):
         """ update state to downloaded and update size """
-        logging.debug("in mark with %s %s", table, episode.title)
-        self._update_state(table, episode.title, 1)
-        self._update_size(table, episode.title, episode.size)
+        logging.debug("in mark with %s %s", episode.podcast, episode.title)
+        self._update_state(episode.podcast, episode.title, 1)
+        self._update_size(episode.podcast, episode.title, episode.size)
 
 
     def delete_podcast(self, name):

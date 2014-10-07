@@ -79,7 +79,7 @@ class DisplayStatus(object):
         self.displays = list()
         self.displays = [["", 0, 0] for _i in range(self.num)]
         self.successful_file_count = 0
-        self.progress_string = "  0:%3s" % self.total_files
+        self.progress_string = "  0:%3s " % self.total_files
 
     def increment_success(self):
         """ Update the count and header string of successful files. """
@@ -98,16 +98,17 @@ class DisplayStatus(object):
             print("Downloaded %s files of which %s failed" % (self.total_files,
                                                              len(failed_files)))
             print("Failed files:")
-            for filename in failed_files:
-                print("\t%s" % filename)
+            for episode in failed_files:
+                print("\t%s" % episode.file_name)
 
     def update(self, task_id, amt_read, episode):
         """ Update display status.  JHA More info here """
         # update the info from this task
-        (_, file_name) = os.path.split(episode.file_name)
-        self.displays[task_id][0] = file_name
-        self.displays[task_id][1] = amt_read
-        self.displays[task_id][2] = episode.size
+        if episode:
+            (_, file_name) = os.path.split(episode.file_name)
+            self.displays[task_id][0] = file_name[0:8] + file_name[12:]
+            self.displays[task_id][1] = amt_read
+            self.displays[task_id][2] = episode.size
 
         # now display all of them
         display_str = self.progress_string
@@ -118,7 +119,7 @@ class DisplayStatus(object):
             else:
                 pct = 0.0
             tmp_str = r"%10s:%7d/%7d  [%03.1f%%]  " % \
-                (self.displays[counter][0][0:8], self.displays[counter][1],
+                (self.displays[counter][0][0:11], self.displays[counter][1],
                  self.displays[counter][2], pct)
             display_str = display_str + tmp_str
 
@@ -161,13 +162,16 @@ class PodcastDownloader(object):
                 # if total length is 0, there was an error
                 if episode.error_msg:
                     self.failed_files.append(episode)
-                elif current_size == episode.size:
-                    # if length read is total length - save name
-                    self.successful_files.append(episode)
-                    self.status.increment_success()
+                    # update our UI
+                    self.status.update(task_id, current_size, None)
+                else:
+                    if current_size == episode.size:
+                        # if length read is total length - save name
+                        self.successful_files.append(episode)
+                        self.status.increment_success()
+                    # update our UI
+                    self.status.update(task_id, current_size, episode)
 
-                # update our UI
-                self.status.update(task_id, current_size, episode)
                 self.out_queue.task_done()
 
         # wait for the queue to finish
