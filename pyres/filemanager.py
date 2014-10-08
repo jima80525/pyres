@@ -9,8 +9,8 @@ import pyres.utils as utils
 
 class FileManager(object):
     """ Class to manage filesystem on mp3 player """
-    def __init__(self, base_dir="TestFiles"):
-    #def __init__(self, base_dir="F:/"):
+    #def __init__(self, base_dir="TestFiles"):
+    def __init__(self, base_dir="F:/"):
         self.base_dir = os.path.join(base_dir, "podcasts")
         utils.mkdir_p(self.base_dir)
 
@@ -24,12 +24,12 @@ class FileManager(object):
         counter = 0
         for episode in sorted(episodes, key=lambda x: x.date):
             (_, tail) = os.path.split(episode.file_name)
-            # JHA TODO figure out this path stuff better
             newfile = os.path.join(self.base_dir, tail)
 
             if sys.platform == 'win32':
                 #os.system('xcopy "%s" "%s"' % (episode.file_name, newfile))
-                os.system('xcopy /Q "%s" "%s"' % (episode.file_name, self.base_dir))
+                os.system('xcopy /Q "%s" "%s"' % (episode.file_name,
+                                                  self.base_dir))
             else:
                 shutil.copyfile(episode.file_name, newfile)
 
@@ -37,20 +37,5 @@ class FileManager(object):
             logging.debug("copied %s to %s", episode.file_name, newfile)
             print("%2d/%d: copied %s to %s" % (counter, total,
                                               episode.file_name, newfile))
-
-
-# TODO - * then need a "copy to mp3 player and mark state as copied"
-# TODO - * then a "remove from mp3 player and harddrive and mark state as
-#          heard"
-# need utils:
-    # walk directory tree
-    # parsing xml file with current status - does it have 'i've listened to
-    # this' info?
-    #
-# simple functionality:
-    # get list of files in state 1
-    # copy them to specified path
-    # mark them as moved
-
 if __name__ == "__main__":
     FSYS = FileManager()

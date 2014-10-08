@@ -1,0 +1,10 @@
+================================================================================
+Todo list for pyres project, in no particular order at this point
+================================================================================
+* Clean up cli output for mp3 player download command
+* option to specify mp3 player location
+* move top level functionality out of the rss class and into a new pyres class
+* Create a top level function to prompt for what's been listened to on mp3
+  player, deleted and mark it as heard in database
+
+* GUI!

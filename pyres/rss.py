@@ -112,8 +112,6 @@ class RssFeed(object):
                 database.mark_episode_downloaded(episode)
                 print episode.file_name
 
-# TODO - move top level functionality to pyres class and leave the feed reader
-# stuff here
     @staticmethod
     def download_to_player():
         """ copy episodes to mp3 player """
