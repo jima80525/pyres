@@ -31,7 +31,6 @@ def parse_command_line():
 if __name__ == "__main__":
     args = parse_command_line()
     pyres = pyres.rss.RssFeed()
-    # JHA TODO get logging working with verbose flag
     if args.database_dump:
         pyres.display_database()
     elif args.add_url:

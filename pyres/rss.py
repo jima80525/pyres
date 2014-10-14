@@ -118,16 +118,14 @@ class RssFeed(object):
         with pyres.database.PodcastDatabase('rss.db') as database:
 
             podcasts = database.get_podcast_names()
-            episodes = list()
             filemgr = pyres.filemanager.FileManager()
 
             for podcast in podcasts:
-                episodes += database.find_episodes_to_copy(podcast)
+                episodes = database.find_episodes_to_copy(podcast)
                 print "----------------------------------------"
                 print podcast
                 print "----------------------------------------"
-
-            filemgr.copy_files_to_player(episodes)
+                filemgr.copy_files_to_player(episodes)
 
 if __name__ == "__main__":
     FEED = RssFeed()

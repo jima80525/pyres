@@ -15,3 +15,4 @@ REM
 \Python27\python main.py -a http://feeds.feedburner.com/TheMemoryPalace --start-date 07/28/14
 \Python27\python main.py -a http://feeds.thisamericanlife.org/talpodcast --start-date 09/27/14
 \Python27\python main.py -a http://www.npr.org/rss/podcast.php?id=35 --start-date 09/28/14
+\Python27\python main.py -a http://feeds.serialpodcast.org/serialpodcast --start-date 01/01/14

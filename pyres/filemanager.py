@@ -27,10 +27,14 @@ class FileManager(object):
             newfile = os.path.join(self.base_dir, tail)
 
             if sys.platform == 'win32':
-                #os.system('xcopy "%s" "%s"' % (episode.file_name, newfile))
-                os.system('xcopy /Q "%s" "%s"' % (episode.file_name,
-                                                  self.base_dir))
+                logging.debug('xcopy /Q "%s" "%s" > ' \
+                              'tmp_pyres_file_do_not_use', \
+                              episode.file_name, self.base_dir)
+                os.system('xcopy /Y /Q "%s" "%s" > tmp_pyres_file_do_not_use' \
+                          % (episode.file_name, self.base_dir))
+                os.remove("tmp_pyres_file_do_not_use")
             else:
+                logging.debug("copying %s to %s", episode.file_name, newfile)
                 shutil.copyfile(episode.file_name, newfile)
 
             counter += 1
