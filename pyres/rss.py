@@ -65,7 +65,7 @@ class RssFeed(object):
         # adds table for podcast - likely to exist already
         database.add_podcast(name, url)
 
-        print("Adding %s: " % name),
+        print("%s: " % name),
 
         episodes_added = 0
         # for each podcast in this feed - add it to databse
@@ -80,6 +80,12 @@ class RssFeed(object):
                   (episodes_added, utils.date_as_string(start_date)))
         else:
             print(" %d episodes returned" % (episodes_added))
+
+    @staticmethod
+    def convert_database():
+        """ debug routine to convert the database """
+        with pyres.database.PodcastDatabase('rss.db') as database:
+            database.convert_tables()
 
     @staticmethod
     def display_database():
@@ -111,6 +117,15 @@ class RssFeed(object):
             for episode in downloader.return_successful_files():
                 database.mark_episode_downloaded(episode)
                 print episode.file_name
+
+    def update_download_list(self):
+        """ Queries each podcast website for new episodes to down load.  Adds
+        these to the database.
+        """
+        with pyres.database.PodcastDatabase('rss.db') as database:
+            podcasts = database.get_podcast_urls()
+            for tuple in podcasts:
+                self.add_episodes_from_feed(database, tuple[0], tuple[1])
 
     @staticmethod
     def download_to_player():

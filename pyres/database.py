@@ -3,6 +3,7 @@ Implements an abstraction to the database.
 """
 import sqlite3
 import logging
+import time
 import pyres.episode as mod_episode
 import pyres.utils as utils
 
@@ -125,6 +126,30 @@ class PodcastDatabase(object):
             cursor.execute("DROP TABLE '%s'" % name)
 
 
+    def get_podcast_urls(self):
+        """Return a list of urls.  Goes through the table list and produces a
+        list of [name, url] tuples.  Walks this list and produces a list of
+        [url, latest_date] tuples from the podcast tables specified by names.
+        I suspect someone better at SQL than I could get this in a single query,
+        but this will work quickly enough for the small data sets I'm expecting.
+        """
+        urls = list()
+        tuples = list()
+        with self.connection:
+            cursor = self.connection.cursor()
+            urls = list(cursor.execute('SELECT url,name FROM podcasts ORDER BY name'))
+            for tuple in urls:
+                url = tuple[0]
+                name =tuple[1]
+                cursor.execute("Select date from '%s' ORDER BY date DESC" % name)
+                check1 = cursor.fetchone()
+                if check1 is not None:
+                    latest_date = utils.string_to_date(check1[0])
+                else:
+                    latest_date = time.gmtime()
+                tuples.append([url, latest_date])
+        return tuples
+
     def get_podcast_names(self):
         """Return a list of podcasts
         """
@@ -146,9 +171,38 @@ class PodcastDatabase(object):
             for name in names:
                 print
                 print name
-                for podcast in cursor.execute("SELECT * FROM '%s'" % name):
-                    print podcast
+                for row in cursor.execute("SELECT * FROM '%s'" % name):
+                    row_list = list(row)
+                    print row_list[0], row_list[1], row_list[5]
 
+    def convert_tables(self):
+        """ Utility to change format of the podcast tables. """
+        # use old version of string to date function
+        utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
+
+        names = self.get_podcast_names()
+        with self.connection:
+            cursor = self.connection.cursor()
+            for name in names:
+                newtable = list()
+                print "----------------------------------------"
+                print name
+                print "----------------------------------------"
+                for row in cursor.execute("SELECT * FROM '%s'" % name):
+                    # right now we're converting date from mm/dd/yy to
+                    # yyyy/mm/dd to it sorts correctly
+                    row_list = list(row)
+                    date=utils.string_to_date(row_list[0])
+                    row_list[0] = utils.date_as_string(date)
+                    newtable.append(row_list)
+                print newtable
+                cursor.execute("DROP TABLE '%s'" % name)
+                cursor.execute("CREATE TABLE '%s' (date text, title text, file "
+                               "text, url text, size integer, state integer)" \
+                               % name)
+                for podcast in newtable:
+                    cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?" \
+                                   ", ?)" % name, podcast)
 
 if __name__ == "__main__":
     print "Not Implemented"

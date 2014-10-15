@@ -23,6 +23,11 @@ def parse_command_line():
                         help="date before first podcast to download")
     parser.add_argument('-w', '--download', action='store_true',
                         help="Download episodes to mp3 player")
+    parser.add_argument('-u', '--update', action='store_true',
+                        help="update the list of podcasts to download")
+    parser.add_argument('--convert-database', action='store_true',
+                        help="debug utility to convert database when mistakes"
+                        " were made")
 
 
     args = parser.parse_args()
@@ -37,5 +42,9 @@ if __name__ == "__main__":
         pyres.add_url(args.add_url, args.start_date)
     elif args.download:
         pyres.download_to_player()
+    elif args.update:
+        pyres.update_download_list()
+    elif args.convert_database:
+        pyres.convert_database()
     else:
         pyres.process_rss_feeds()

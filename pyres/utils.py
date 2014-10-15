@@ -26,11 +26,11 @@ def clean_name(value, deletechars=r"\/:*%?\"<>|'"):
 
 def string_to_date(date_string):
     """ Convert a formatted string into a date."""
-    return time.strptime(date_string, "%x:%X")
+    return time.strptime(date_string, "%Y/%m/%d:%H:%M:%S")
 
 def date_as_string(value):
     """ Convert a date field into a string """
-    return time.strftime("%x:%X", value)
+    return time.strftime('%Y/%m/%d:%H:%M:%S', value)
 
 def acroname(name):
     """ Returns a three letter acronym given a podcast title """
