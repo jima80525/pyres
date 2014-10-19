@@ -7,5 +7,5 @@ REM \Python27\python main.py -a http://rss.sciam.com/sciam/60-second-psych --sta
 REM \Python27\python main.py -a http://rss.sciam.com/sciam/60-second-psych
 \Python27\python main.py -a http://rss.sciam.com/sciam/60-second-psych --start-date 08/20/14
 \Python27\python main.py -a http://rss.sciam.com/sciam/60secsciencepodcast --start-date 10/05/14
-\Python27\python main.py -a http://feeds.serialpodcast.org/serialpodcast --start-date 01/01/14
+REM \Python27\python main.py -a http://feeds.serialpodcast.org/serialpodcast --start-date 01/01/14
 

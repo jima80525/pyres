@@ -141,6 +141,8 @@ class RssFeed(object):
                 print podcast
                 print "----------------------------------------"
                 filemgr.copy_files_to_player(episodes)
+                for episode in episodes:
+                    database.mark_episode_on_mp3_player(episode)
 
 if __name__ == "__main__":
     FEED = RssFeed()

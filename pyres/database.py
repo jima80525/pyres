@@ -116,6 +116,12 @@ class PodcastDatabase(object):
         self._update_size(episode.podcast, episode.title, episode.size)
 
 
+    def mark_episode_on_mp3_player(self, episode):
+        """ update state to downloaded and update size """
+        logging.debug("in on player with %s %s", episode.podcast, episode.title)
+        self._update_state(episode.podcast, episode.title, 2)
+
+
     def delete_podcast(self, name):
         """Delete a podcast from the main table.  Also drops the episode table
            for this podcast.
