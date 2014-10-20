@@ -124,8 +124,8 @@ class RssFeed(object):
         """
         with pyres.database.PodcastDatabase('rss.db') as database:
             podcasts = database.get_podcast_urls()
-            for tuple in podcasts:
-                self.add_episodes_from_feed(database, tuple[0], tuple[1])
+            for _tuple in podcasts:
+                self.add_episodes_from_feed(database, _tuple[0], _tuple[1])
 
     @staticmethod
     def download_to_player():
@@ -135,14 +135,18 @@ class RssFeed(object):
             podcasts = database.get_podcast_names()
             filemgr = pyres.filemanager.FileManager()
 
+            episodes = list()
             for podcast in podcasts:
-                episodes = database.find_episodes_to_copy(podcast)
-                print "----------------------------------------"
-                print podcast
-                print "----------------------------------------"
-                filemgr.copy_files_to_player(episodes)
-                for episode in episodes:
-                    database.mark_episode_on_mp3_player(episode)
+                print("%s:" % podcast),
+                new_episodes = database.find_episodes_to_copy(podcast)
+                print len(new_episodes)
+                episodes.extend(new_episodes)
+
+            # copy all the files in one list so they come out in date
+            # order
+            filemgr.copy_files_to_player(episodes)
+            for episode in episodes:
+                database.mark_episode_on_mp3_player(episode)
 
 if __name__ == "__main__":
     FEED = RssFeed()

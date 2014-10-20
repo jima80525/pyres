@@ -2,7 +2,6 @@
 Todo list for pyres project, in no particular order at this point
 ================================================================================
 * make update the default action - maybe add subcommands?
-* Clean up cli output for mp3 player download command
 * option to specify mp3 player location
 * way to see how long each episode is - and how much time is being downloaded - maybe how much time in each state
 * move top level functionality out of the rss class and into a new pyres class
@@ -10,7 +9,8 @@ Todo list for pyres project, in no particular order at this point
   player, deleted and mark it as heard in database
 * get the set of bat files for testing/using the tool straightened out
 
-* MP3 player download always runs - doesn't check state right
+* autoback up of database file
+
 *
     # JHA TODO get logging working with verbose flag
 

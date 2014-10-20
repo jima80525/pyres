@@ -143,11 +143,13 @@ class PodcastDatabase(object):
         tuples = list()
         with self.connection:
             cursor = self.connection.cursor()
-            urls = list(cursor.execute('SELECT url,name FROM podcasts ORDER BY name'))
-            for tuple in urls:
-                url = tuple[0]
-                name =tuple[1]
-                cursor.execute("Select date from '%s' ORDER BY date DESC" % name)
+            urls = list(cursor.execute('SELECT url,name FROM podcasts ' \
+                                       'ORDER BY name'))
+            for _tuple in urls:
+                url = _tuple[0]
+                name = _tuple[1]
+                cursor.execute("Select date from '%s' ORDER BY date DESC" % \
+                               name)
                 check1 = cursor.fetchone()
                 if check1 is not None:
                     latest_date = utils.string_to_date(check1[0])
@@ -198,7 +200,7 @@ class PodcastDatabase(object):
                     # right now we're converting date from mm/dd/yy to
                     # yyyy/mm/dd to it sorts correctly
                     row_list = list(row)
-                    date=utils.string_to_date(row_list[0])
+                    date = utils.string_to_date(row_list[0])
                     row_list[0] = utils.date_as_string(date)
                     newtable.append(row_list)
                 print newtable
