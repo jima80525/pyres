@@ -59,6 +59,10 @@ class PodcastDatabase(object):
         """Add the episode data if not already present.  If the episode is
         present, do nothing.
         """
+        if not episode.date or not episode.title or not episode.url:
+            print("Got a bad episode from server, will not add:", episode.date,
+                  episode.title, episode.url)
+            return
         with self.connection:
             cursor = self.connection.cursor()
             cursor.execute("SELECT * from '%s' where date = '%s'" % \
@@ -181,7 +185,11 @@ class PodcastDatabase(object):
                 print name
                 for row in cursor.execute("SELECT * FROM '%s'" % name):
                     row_list = list(row)
-                    print row_list[0], row_list[1], row_list[5]
+                    print row_list[0], row_list[1], row_list[5],
+                    if row_list[3]:
+                        print "URL OK"
+                    else:
+                        print "BAD URL"
 
     def convert_tables(self):
         """ Utility to change format of the podcast tables. """
@@ -192,25 +200,30 @@ class PodcastDatabase(object):
         with self.connection:
             cursor = self.connection.cursor()
             for name in names:
-                newtable = list()
-                print "----------------------------------------"
-                print name
-                print "----------------------------------------"
-                for row in cursor.execute("SELECT * FROM '%s'" % name):
+                if "Invisible" not in name:
+                    continue
+                print "GOT IT %s" % name
+                title = "Kickstart Radiotopia- A Storytelling Revolution"
+                cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name, title))
+                #newtable = list()
+                #print "----------------------------------------"
+                #print name
+                #print "----------------------------------------"
+                #for row in cursor.execute("SELECT * FROM '%s'" % name):
                     # right now we're converting date from mm/dd/yy to
                     # yyyy/mm/dd to it sorts correctly
-                    row_list = list(row)
-                    date = utils.string_to_date(row_list[0])
-                    row_list[0] = utils.date_as_string(date)
-                    newtable.append(row_list)
-                print newtable
-                cursor.execute("DROP TABLE '%s'" % name)
-                cursor.execute("CREATE TABLE '%s' (date text, title text, file "
-                               "text, url text, size integer, state integer)" \
-                               % name)
-                for podcast in newtable:
-                    cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?" \
-                                   ", ?)" % name, podcast)
+                    #row_list = list(row)
+                    #date = utils.string_to_date(row_list[0])
+                    #row_list[0] = utils.date_as_string(date)
+                    #newtable.append(row_list)
+                #print newtable
+                #cursor.execute("DROP TABLE '%s'" % name)
+                #cursor.execute("CREATE TABLE '%s' (date text, title text, file "
+                               #"text, url text, size integer, state integer)" \
+                               #% name)
+                #for podcast in newtable:
+                    #cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?" \
+                                   #", ?)" % name, podcast)
 
 if __name__ == "__main__":
     print "Not Implemented"
