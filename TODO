@@ -1,18 +1,25 @@
 ================================================================================
 Todo list for pyres project, in no particular order at this point
 ================================================================================
-* make update the default action - maybe add subcommands?
+# JHA TODO get logging working with verbose flag
+
 * option to specify mp3 player location
-* way to see how long each episode is - and how much time is being downloaded - maybe how much time in each state
+
+* make update the default action - maybe add subcommands?
 * move top level functionality out of the rss class and into a new pyres class
+* make filenames and directories options once we get pyres class
+
+* way to see how long each episode is - and how much time is being downloaded - maybe how much time in each state
+
 * Create a top level function to prompt for what's been listened to on mp3
   player, deleted and mark it as heard in database
+
 * get the set of bat files for testing/using the tool straightened out
 
-* autoback up of database file
+# add way to pull a small number of podcasts at a time from long-established podcasts (i.e. only have x number of episodes in play at once)
+#
+# add audiobook queue
 
-*
-    # JHA TODO get logging working with verbose flag
 
 
 * GUI!

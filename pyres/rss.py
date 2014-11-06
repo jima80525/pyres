@@ -5,6 +5,7 @@ import feedparser
 import os
 import logging
 import time
+import shutil
 import pyres.database
 import pyres.download
 import pyres.episode
@@ -147,6 +148,13 @@ class RssFeed(object):
             filemgr.copy_files_to_player(episodes)
             for episode in episodes:
                 database.mark_episode_on_mp3_player(episode)
+
+    @staticmethod
+    def backup_database():
+        utils.mkdir_p("BACKUP")
+        suffix = utils.current_date_time_as_string()
+        filename = os.path.join("BACKUP", "rss.db" + "_" + suffix)
+        shutil.copyfile('rss.db', filename)
 
 if __name__ == "__main__":
     FEED = RssFeed()

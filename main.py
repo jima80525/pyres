@@ -28,6 +28,8 @@ def parse_command_line():
     parser.add_argument('--convert-database', action='store_true',
                         help="debug utility to convert database when mistakes"
                         " were made")
+    parser.add_argument('-b', '--no-backup', action='store_true',
+                        help="do not create an auto-backup of the database")
 
 
     args = parser.parse_args()
@@ -36,6 +38,11 @@ def parse_command_line():
 if __name__ == "__main__":
     args = parse_command_line()
     pyres = pyres.rss.RssFeed()
+
+    # database backup is done before any operation by default
+    if not args.no_backup:
+        pyres.backup_database()
+
     if args.database_dump:
         pyres.display_database()
     elif args.add_url:

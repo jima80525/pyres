@@ -32,6 +32,10 @@ def date_as_string(value):
     """ Convert a date field into a string """
     return time.strftime('%Y/%m/%d:%H:%M:%S', value)
 
+def current_date_time_as_string():
+    """ Get current date and time as a string suitable for a filename """
+    return time.strftime("%Y_%m_%d_%H_%M_%S")
+
 def acroname(name):
     """ Returns a three letter acronym given a podcast title """
     word_list = name.split()
