@@ -1,8 +1,6 @@
 ================================================================================
 Todo list for pyres project, in no particular order at this point
 ================================================================================
-# JHA TODO get logging working with verbose flag
-
 * option to specify mp3 player location
 
 * make update the default action - maybe add subcommands?

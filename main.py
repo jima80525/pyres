@@ -2,8 +2,9 @@
 Test Program, I think.
 """
 import argparse
-import pyres.rss
 import time
+import logging
+import pyres.rss
 
 def cmd_string_to_date(date_string):
     """ Convert a formatted string into a date."""
@@ -42,6 +43,11 @@ if __name__ == "__main__":
     # database backup is done before any operation by default
     if not args.no_backup:
         pyres.backup_database()
+
+    # if verbose flag is set - turn logging level up
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug("verbose set")
 
     if args.database_dump:
         pyres.display_database()
