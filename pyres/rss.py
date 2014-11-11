@@ -16,6 +16,7 @@ class RssFeed(object):
     """ Class to manage rss feeds """
     def __init__(self, base_dir="Files"):
         self.base_dir = base_dir
+        self.database_name = 'rss.db'
 
     def process_feed(self, url):
         """
@@ -66,8 +67,6 @@ class RssFeed(object):
         # adds table for podcast - likely to exist already
         database.add_podcast(name, url)
 
-        print("%s: " % name),
-
         episodes_added = 0
         # for each podcast in this feed - add it to databse
         for episode in episodes:
@@ -76,34 +75,32 @@ class RssFeed(object):
                 logging.debug("Adding %s", utils.date_as_string(episode.date))
                 database.add_new_episode_data(name, episode)
                 episodes_added += 1
-        if start_date:
-            print(" %d episodes since %s" % \
-                  (episodes_added, utils.date_as_string(start_date)))
-        else:
-            print(" %d episodes returned" % (episodes_added))
+        return name, episodes_added
 
-    @staticmethod
-    def convert_database():
+    def convert_database(self):
         """ debug routine to convert the database """
-        with pyres.database.PodcastDatabase('rss.db') as database:
+        with pyres.database.PodcastDatabase(self.database_name) as database:
             database.convert_tables()
 
-    @staticmethod
-    def display_database():
+    def display_database(self):
         """ debug routine to display the database """
-        with pyres.database.PodcastDatabase('rss.db') as database:
+        with pyres.database.PodcastDatabase(self.database_name) as database:
             database.show_podcasts()
 
     def add_url(self, url, start_date):
         """ add a new podcast to the system """
         logging.debug("in add url with %s %s", url, start_date)
-        with pyres.database.PodcastDatabase('rss.db') as database:
-            self.add_episodes_from_feed(database, url, start_date)
+        with pyres.database.PodcastDatabase(self.database_name) as database:
+            name, added = self.add_episodes_from_feed(database, url, start_date)
+            if start_date:
+                print("%-50s: %3d episodes since %s" % \
+                      (name, added, utils.date_as_string(start_date)))
+            else:
+                print("%-50s: %3d episodes returned" % (name, added))
 
-    @staticmethod
-    def process_rss_feeds():
+    def process_rss_feeds(self):
         """ Main routine for program """
-        with pyres.database.PodcastDatabase('rss.db') as database:
+        with pyres.database.PodcastDatabase(self.database_name) as database:
 
             podcasts = database.get_podcast_names()
 
@@ -112,7 +109,8 @@ class RssFeed(object):
             for podcast in podcasts:
                 tmp_list = database.find_episodes_to_download(podcast)
                 episodes += tmp_list
-                print("%s: %d episodes to download" % (podcast, len(tmp_list)))
+                if len(tmp_list) != 0:
+                    print("%-50s: %3d episodes to download" % (podcast, len(tmp_list)))
             downloader = pyres.download.PodcastDownloader(episodes)
             downloader.download_url_list()
             for episode in downloader.return_successful_files():
@@ -123,25 +121,36 @@ class RssFeed(object):
         """ Queries each podcast website for new episodes to down load.  Adds
         these to the database.
         """
-        with pyres.database.PodcastDatabase('rss.db') as database:
+        with pyres.database.PodcastDatabase(self.database_name) as database:
             podcasts = database.get_podcast_urls()
+            total_added = 0
             for _tuple in podcasts:
-                self.add_episodes_from_feed(database, _tuple[0], _tuple[1])
+                name, added = self.add_episodes_from_feed(database, _tuple[0],
+                                                          _tuple[1])
+                if added:
+                    total_added += added
+                    print("%-50s: %3d episodes since %s" % \
+                          (name, added, utils.date_as_string(_tuple[1])))
+            print
+            print("There are a total of %d episodes to be updated." %
+                  (total_added))
 
-    @staticmethod
-    def download_to_player():
+    def download_to_player(self):
         """ copy episodes to mp3 player """
-        with pyres.database.PodcastDatabase('rss.db') as database:
+        with pyres.database.PodcastDatabase(self.database_name) as database:
 
             podcasts = database.get_podcast_names()
             filemgr = pyres.filemanager.FileManager()
 
             episodes = list()
             for podcast in podcasts:
-                print("%s:" % podcast),
                 new_episodes = database.find_episodes_to_copy(podcast)
-                print len(new_episodes)
-                episodes.extend(new_episodes)
+                if len(new_episodes) != 0:
+                    print("%-50s: %3d" % (podcast, len(new_episodes)))
+                    episodes.extend(new_episodes)
+
+            print
+            print("Copying %d episodes to player" % len(episodes))
 
             # copy all the files in one list so they come out in date
             # order
@@ -149,12 +158,14 @@ class RssFeed(object):
             for episode in episodes:
                 database.mark_episode_on_mp3_player(episode)
 
-    @staticmethod
-    def backup_database():
-        utils.mkdir_p("BACKUP")
-        suffix = utils.current_date_time_as_string()
-        filename = os.path.join("BACKUP", "rss.db" + "_" + suffix)
-        shutil.copyfile('rss.db', filename)
+    def backup_database(self):
+        if os.path.isfile(self.database_name):
+            utils.mkdir_p("BACKUP")
+            suffix = utils.current_date_time_as_string()
+            filename = os.path.join("BACKUP", self.database_name + "_" + suffix)
+            shutil.copyfile(self.database_name, filename)
+        else:
+            logging.debug("No database file to back up")
 
 if __name__ == "__main__":
     FEED = RssFeed()
