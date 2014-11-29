@@ -204,7 +204,8 @@ class PodcastDatabase(object):
                     continue
                 print "GOT IT %s" % name
                 title = "Kickstart Radiotopia- A Storytelling Revolution"
-                cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name, title))
+                cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name, \
+                                                                      title))
                 #newtable = list()
                 #print "----------------------------------------"
                 #print name
@@ -218,9 +219,9 @@ class PodcastDatabase(object):
                     #newtable.append(row_list)
                 #print newtable
                 #cursor.execute("DROP TABLE '%s'" % name)
-                #cursor.execute("CREATE TABLE '%s' (date text, title text, file "
-                               #"text, url text, size integer, state integer)" \
-                               #% name)
+                #cursor.execute("CREATE TABLE '%s' (date text, title text, "
+                               #"file text, url text, size integer, state "
+                               #"integer)" % name)
                 #for podcast in newtable:
                     #cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?" \
                                    #", ?)" % name, podcast)

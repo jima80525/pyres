@@ -3,5 +3,5 @@
 REM
 REM echo Running test
 REM \Python27\python -m unittest discover -s test
-\Python27\python main.py %*
+REM \Python27\python pyres %*
 

@@ -4,13 +4,8 @@ Todo list for pyres project, in no particular order at this point
 * way to see how long each episode is - and how much time is being downloaded -
   maybe how much time in each state
 
-* make filenames and directories options once we get pyres class
 * option to specify mp3 player location
-* option to specify database location
-
-* make update the default action - maybe add subcommands?
-
-* move top level functionality out of the rss class and into a new pyres class
+# join update and process commands
 
 * Create a top level function to prompt for what's been listened to on mp3
   player, deleted and mark it as heard in database
