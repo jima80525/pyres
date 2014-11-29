@@ -10,7 +10,7 @@ import pyres.utils as utils
 class FileManager(object):
     """ Class to manage filesystem on mp3 player """
     #def __init__(self, base_dir="TestFiles"):
-    def __init__(self, base_dir="F:/"):
+    def __init__(self, base_dir="/media/jima/549C-9E8D/"):
         self.base_dir = os.path.join(base_dir, "podcasts")
         utils.mkdir_p(self.base_dir)
 
@@ -23,6 +23,8 @@ class FileManager(object):
         total = len(episodes)
         counter = 0
         for episode in sorted(episodes, key=lambda x: x.date):
+            # jha - TODO this is converting to linux paths.  work on windows?
+            episode.file_name = episode.file_name.replace('\\', '/')
             (_, tail) = os.path.split(episode.file_name)
             newfile = os.path.join(self.base_dir, tail)
 
