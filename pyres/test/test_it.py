@@ -1,8 +1,9 @@
 """ Test test """
 #import unittest
-#import os
+import os
 #import stat
 #import pyres.database
+from pyres.database import PodcastDatabase
 
 
 def _make_file(file_name):
@@ -16,7 +17,9 @@ def _make_file(file_name):
 def test_needsfiles(tmpdir):
     """ Testing pytest """
     print tmpdir
-    assert 0
+    print "passed new assert"
+
+    #assert 0
 
 
 class TestOpen(object):
@@ -24,26 +27,24 @@ class TestOpen(object):
 
     def test_new_db(self):
         """ create a new database """
-        myx = "this"
-        print dir(self)
-        assert 'h' in myx
-        #conn, cur = pyres.database.open_podcasts('newdb.db')
-        #self.failUnless(conn)
-        #self.failUnless(cur)
-        #pyres.database.close_podcasts(conn)
-        #os.remove('newdb.db')
+        assert self
+        with PodcastDatabase('newdb.db') as _database:
+            assert _database
+
+        os.remove('newdb.db')
 
     def test_existing_db(self):
         """ open an existing database """
+        assert self
         myx = "hello"
-        print dir(self)
-        assert hasattr(myx, 'check')
-        #db_name = 'existing.db'
-        #_make_file(db_name)
-        #conn, cur = pyres.database.open_podcasts(db_name)
-        #self.failUnless(conn)
-        #self.failUnless(cur)
-        #pyres.database.close_podcasts(conn)
+        assert 'h' in myx
+        #assert 'm' in myx
+        #assert hasattr(myx, 'check')
+        db_name = 'existing.db'
+        _make_file(db_name)
+        with PodcastDatabase(db_name) as _database:
+            assert _database
+        os.remove(db_name)
 
     #def testReadOnlyFile(self):
         #try:
