@@ -5,8 +5,9 @@ import feedparser
 import os
 import logging
 import time
-from .episode import Episode
+from pyres.episode import Episode
 import pyres.utils as utils
+
 
 class RssFeed(object):
     """ Class to manage rss feeds """
@@ -34,8 +35,8 @@ class RssFeed(object):
             raw_date = feed_data['published']
             # remove last word from published date - it's a timezone
             # and we don't really care about the timezone as most feeds are
-            # likely to remain with the same timezone and we're only using dates
-            # for ordering.
+            # likely to remain with the same timezone and we're only using
+            # dates for ordering.
             raw_date = raw_date.rsplit(' ', 1)[0]
             date = time.strptime(raw_date, "%a, %d %b %Y %X")
             try:
@@ -52,7 +53,6 @@ class RssFeed(object):
                 raise
         return podcast_name, episodes
 
-    # JHA TODO consider moving database action out of this function
     def add_episodes_from_feed(self, database, url, start_date=None):
         """ Add episodes from url into database. """
         name, episodes = self.process_feed(url)

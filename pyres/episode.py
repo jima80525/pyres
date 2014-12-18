@@ -5,6 +5,7 @@ import os
 import logging
 import pyres.utils as utils
 
+
 # pylint: disable-msg=R0902
 class Episode(object):
     """ Class to encapsulate a single episode """
@@ -27,9 +28,9 @@ class Episode(object):
         if 'base_path' in kwargs:
             # create file name
             postfix = utils.acroname(kwargs['podcast'])
-            self.file_name = os.path.join(kwargs['base_path'], \
-                                          utils.clean_name( \
-                                              utils.date_as_string(self.date)) \
+            self.file_name = os.path.join(kwargs['base_path'],
+                                          utils.clean_name(
+                                              utils.date_as_string(self.date))
                                           + postfix + ".mp3")
         elif 'file_name' in kwargs:
             self.file_name = kwargs['file_name']

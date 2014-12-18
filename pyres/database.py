@@ -7,6 +7,7 @@ import time
 import pyres.episode as mod_episode
 import pyres.utils as utils
 
+
 class PodcastDatabase(object):
     """ Class to encapsulate access to database """
     def __init__(self, file_name):
@@ -19,7 +20,7 @@ class PodcastDatabase(object):
         # test to ensure that the main podcasts table exists
         # Create it if not
         try:
-            self.connection.execute("CREATE TABLE podcasts (name text, url " \
+            self.connection.execute("CREATE TABLE podcasts (name text, url "
                                     "text)")
         except sqlite3.OperationalError:
             pass
@@ -52,7 +53,7 @@ class PodcastDatabase(object):
 
             cursor.execute("INSERT INTO podcasts VALUES (?, ?)", (name, url))
             cursor.execute("CREATE TABLE '%s' (date text, title text, file "
-                           "text, url text, size integer, state integer)" \
+                           "text, url text, size integer, state integer)"
                            % name)
 
     def add_new_episode_data(self, table, episode):
@@ -65,11 +66,11 @@ class PodcastDatabase(object):
             return
         with self.connection:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT * from '%s' where date = '%s'" % \
+            cursor.execute("SELECT * from '%s' where date = '%s'" %
                            (table, episode.date))
             check1 = cursor.fetchone()
             if check1 is None:
-                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" % \
+                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" %
                                table, episode.as_list())
                 logging.debug("Added %s", episode.title)
 
@@ -88,7 +89,7 @@ class PodcastDatabase(object):
         episodes = list()
         with self.connection:
             cursor = self.connection.cursor()
-            for row in cursor.execute("SELECT * from '%s' where " \
+            for row in cursor.execute("SELECT * from '%s' where "
                                       "state = %s" % (table, state)):
                 row_list = list(row)
                 episodes.append(
@@ -98,20 +99,18 @@ class PodcastDatabase(object):
                                         size=row_list[4], state=row_list[5]))
         return episodes
 
-
     def _update_size(self, table, title, size):
         """ change state of podcast """
         logging.debug("In update size with %s %s %d", table, title, size)
         with self.connection:
-            self.connection.execute("UPDATE '%s' SET size=? where title = ?" \
+            self.connection.execute("UPDATE '%s' SET size=? where title = ?"
                                     % table, (size, title))
 
     def _update_state(self, table, title, state):
         """ change state of podcast """
         with self.connection:
-            self.connection.execute("UPDATE '%s' SET state=? where title = ?" \
+            self.connection.execute("UPDATE '%s' SET state=? where title = ?"
                                     % table, (state, title))
-
 
     def mark_episode_downloaded(self, episode):
         """ update state to downloaded and update size """
@@ -119,12 +118,10 @@ class PodcastDatabase(object):
         self._update_state(episode.podcast, episode.title, 1)
         self._update_size(episode.podcast, episode.title, episode.size)
 
-
     def mark_episode_on_mp3_player(self, episode):
         """ update state to downloaded and update size """
-        logging.debug("in on player with %s %s", episode.podcast, episode.title)
+        logging.debug("in on player : %s %s", episode.podcast, episode.title)
         self._update_state(episode.podcast, episode.title, 2)
-
 
     def delete_podcast(self, name):
         """Delete a podcast from the main table.  Also drops the episode table
@@ -135,24 +132,24 @@ class PodcastDatabase(object):
             cursor.execute("DELETE FROM podcasts WHERE name='%s'" % name)
             cursor.execute("DROP TABLE '%s'" % name)
 
-
     def get_podcast_urls(self):
         """Return a list of urls.  Goes through the table list and produces a
         list of [name, url] tuples.  Walks this list and produces a list of
         [url, latest_date] tuples from the podcast tables specified by names.
-        I suspect someone better at SQL than I could get this in a single query,
-        but this will work quickly enough for the small data sets I'm expecting.
+        I suspect someone better at SQL than I could get this in a single
+        query, but this will work quickly enough for the small data sets I'm
+        expecting.
         """
         urls = list()
         tuples = list()
         with self.connection:
             cursor = self.connection.cursor()
-            urls = list(cursor.execute('SELECT url,name FROM podcasts ' \
+            urls = list(cursor.execute('SELECT url,name FROM podcasts '
                                        'ORDER BY name'))
             for _tuple in urls:
                 url = _tuple[0]
                 name = _tuple[1]
-                cursor.execute("Select date from '%s' ORDER BY date DESC" % \
+                cursor.execute("Select date from '%s' ORDER BY date DESC" %
                                name)
                 check1 = cursor.fetchone()
                 if check1 is not None:
@@ -172,7 +169,6 @@ class PodcastDatabase(object):
                                        'name'):
                 names.append(name[0])
         return names
-
 
     def show_podcasts(self):
         """Display information from database.
@@ -204,7 +200,7 @@ class PodcastDatabase(object):
                     continue
                 print "GOT IT %s" % name
                 title = "Kickstart Radiotopia- A Storytelling Revolution"
-                cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name, \
+                cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name,
                                                                       title))
                 #newtable = list()
                 #print "----------------------------------------"

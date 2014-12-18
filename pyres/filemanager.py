@@ -7,6 +7,7 @@ import logging
 import shutil
 import pyres.utils as utils
 
+
 class FileManager(object):
     """ Class to manage filesystem on mp3 player """
     #def __init__(self, base_dir="TestFiles"):
@@ -23,16 +24,15 @@ class FileManager(object):
         total = len(episodes)
         counter = 0
         for episode in sorted(episodes, key=lambda x: x.date):
-            # jha - TODO this is converting to linux paths.  work on windows?
             episode.file_name = episode.file_name.replace('\\', '/')
             (_, tail) = os.path.split(episode.file_name)
             newfile = os.path.join(self.base_dir, tail)
 
             if sys.platform == 'win32':
-                logging.debug('xcopy /Q "%s" "%s" > ' \
-                              'tmp_pyres_file_do_not_use', \
+                logging.debug('xcopy /Q "%s" "%s" > '
+                              'tmp_pyres_file_do_not_use',
                               episode.file_name, self.base_dir)
-                os.system('xcopy /Y /Q "%s" "%s" > tmp_pyres_file_do_not_use' \
+                os.system('xcopy /Y /Q "%s" "%s" > tmp_pyres_file_do_not_use'
                           % (episode.file_name, self.base_dir))
                 os.remove("tmp_pyres_file_do_not_use")
             else:
@@ -42,6 +42,6 @@ class FileManager(object):
             counter += 1
             logging.debug("copied %s to %s", episode.file_name, newfile)
             print("%2d/%d: copied %s to %s" % (counter, total,
-                                              episode.file_name, newfile))
+                                               episode.file_name, newfile))
 if __name__ == "__main__":
     FSYS = FileManager()

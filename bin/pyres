@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+import pyres
+print "here I am"
