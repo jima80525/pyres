@@ -59,13 +59,6 @@ def add_and_check(database, table_name, episode, expected=1):
 class TestOpen(object):
     """ test the open functionality """
 
-    def test_envreading(self, monkeypatch):
-        """ laksjdd"""
-        assert self
-        monkeypatch.setitem(os.environ, 'ENV1', 'myval')
-        val = os.environ['ENV1']
-        assert val == "myval"
-
     def test_new_db(self):
         """ create a new database """
         assert self
