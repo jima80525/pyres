@@ -66,8 +66,8 @@ class PodcastDatabase(object):
             return
         with self.connection:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT * from '%s' where date = '%s'" %
-                           (table, episode.date))
+            cursor.execute("SELECT * from '%s' where title = '%s'" %
+                           (table, episode.title))
             check1 = cursor.fetchone()
             if check1 is None:
                 cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" %
@@ -189,19 +189,20 @@ class PodcastDatabase(object):
 
     def convert_tables(self):
         """ Utility to change format of the podcast tables. """
+        pass
         # use old version of string to date function
-        utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
+        #utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
 
-        names = self.get_podcast_names()
-        with self.connection:
-            cursor = self.connection.cursor()
-            for name in names:
-                if "Invisible" not in name:
-                    continue
-                print "GOT IT %s" % name
-                title = "Kickstart Radiotopia- A Storytelling Revolution"
-                cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name,
-                                                                      title))
+        #names = self.get_podcast_names()
+        #with self.connection:
+            #cursor = self.connection.cursor()
+            #for name in names:
+                #if "Invisible" not in name:
+                    #continue
+                #print "GOT IT %s" % name
+                #title = "Kickstart Radiotopia- A Storytelling Revolution"
+                #cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name,
+                                                                      #title))
                 #newtable = list()
                 #print "----------------------------------------"
                 #print name

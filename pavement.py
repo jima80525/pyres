@@ -4,11 +4,13 @@
 from __future__ import print_function
 
 import sys
+import subprocess
 
 # Import parameters from the setup file.
 sys.path.append('.')
 from setup import (
-    setup_dict, _lint, _test)
+    print_success_message, print_failure_message,
+    setup_dict, _lint, _test, _test_all)
 
 from paver.easy import options, task, consume_args
 from paver.setuputils import install_distutils_tasks
@@ -16,6 +18,26 @@ from paver.setuputils import install_distutils_tasks
 options(setup=setup_dict)
 
 install_distutils_tasks()
+
+## Miscellaneous helper functions
+
+
+def print_passed():
+    # generated on http://patorjk.com/software/taag/#p=display&f=Small&t=PASSED
+    print_success_message(r'''  ___  _   ___ ___ ___ ___
+ | _ \/_\ / __/ __| __|   \
+ |  _/ _ \\__ \__ \ _|| |) |
+ |_|/_/ \_\___/___/___|___/
+''')
+
+
+def print_failed():
+    # generated on http://patorjk.com/software/taag/#p=display&f=Small&t=FAILED
+    print_failure_message(r'''  ___ _   ___ _    ___ ___
+ | __/_\ |_ _| |  | __|   \
+ | _/ _ \ | || |__| _|| |) |
+ |_/_/ \_\___|____|___|___/
+''')
 
 
 @task
@@ -68,3 +90,22 @@ def add_serial():
 def test():
     """Run the unit tests."""
     raise SystemExit(_test())
+
+
+@task
+def test_all():
+    """Perform a style check and run all unit tests."""
+    retcode = _test_all()
+    if retcode == 0:
+        print_passed()
+    else:
+        print_failed()
+    raise SystemExit(retcode)
+
+
+@task
+def cov():
+    retcode = subprocess.call(
+        'py.test --cov-report term-missing --cov pyres', shell=True)
+    if retcode != 0:
+        print_failure_message('Failed running pytest')
