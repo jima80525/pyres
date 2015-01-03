@@ -1,27 +1,10 @@
-""" Test test """
-import os
+""" Test the Episode module """
 import time
 import pytest
 import pyres.episode
 
 
-@pytest.fixture
-def emptyfile(request):
-    """ Provide a new, empty database file """
-    file_name = 'newdb.db'
-    _file = open(file_name, 'w')
-    _file.write('')
-    _file.close()
-
-    def fin():
-        """ remove the file after use """
-        os.remove(file_name)
-
-    request.addfinalizer(fin)
-    return file_name
-
-
-class TestOpen(object):
+class TestEpisode(object):
     """ test the open functionality """
 
     def test_all_params(self):
@@ -55,7 +38,7 @@ class TestOpen(object):
         """ set all parameters """
         assert self
         with pytest.raises(Exception):
-            episode = pyres.episode.Episode(
+            pyres.episode.Episode(
                 date=time.localtime(),
                 title='title',
                 url='url',
@@ -66,7 +49,6 @@ class TestOpen(object):
                 #base_path='base_path',
                 #file_name='file_name'
             )
-            assert not episode
 
     def test_file_name(self):
         """ set all parameters """
