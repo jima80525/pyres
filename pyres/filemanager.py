@@ -2,7 +2,6 @@
 manages the files on the mp3 player
 """
 import os
-import sys
 import logging
 import shutil
 import pyres.utils as utils
@@ -16,7 +15,10 @@ class FileManager(object):
         utils.mkdir_p(self.base_dir)
 
     def does_filesystem_exist(self):
-        """ Tests for existance """
+        """ Tests for existence  - this is unused, but it's a placeholder to
+        keep lint happy until I add the management of files on the mp3 player -
+        removing and copying audio books.  It might not make sense to keep this
+        as a class. """
         return os.path.exists(self.base_dir)
 
     def copy_files_to_player(self, episodes):
@@ -28,16 +30,20 @@ class FileManager(object):
             (_, tail) = os.path.split(episode.file_name)
             newfile = os.path.join(self.base_dir, tail)
 
-            if sys.platform == 'win32':
-                logging.debug('xcopy /Q "%s" "%s" > '
-                              'tmp_pyres_file_do_not_use',
-                              episode.file_name, self.base_dir)
-                os.system('xcopy /Y /Q "%s" "%s" > tmp_pyres_file_do_not_use'
-                          % (episode.file_name, self.base_dir))
-                os.remove("tmp_pyres_file_do_not_use")
-            else:
-                logging.debug("copying %s to %s", episode.file_name, newfile)
-                shutil.copyfile(episode.file_name, newfile)
+            logging.debug("copying %s to %s", episode.file_name, newfile)
+            shutil.copyfile(episode.file_name, newfile)
+
+            # keeping win verson around for the time being
+            #if sys.platform == 'win32':
+                #logging.debug('xcopy /Q "%s" "%s" > '
+                              #'tmp_pyres_file_do_not_use',
+                              #episode.file_name, self.base_dir)
+                #os.system('xcopy /Y /Q "%s" "%s" > tmp_pyres_file_do_not_use'
+                          #% (episode.file_name, self.base_dir))
+                #os.remove("tmp_pyres_file_do_not_use")
+            #else:
+                #logging.debug("copying %s to %s", episode.file_name, newfile)
+                #shutil.copyfile(episode.file_name, newfile)
 
             counter += 1
             logging.debug("copied %s to %s", episode.file_name, newfile)
