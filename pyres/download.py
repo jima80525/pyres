@@ -119,7 +119,7 @@ class DisplayStatus(object):
                             100/self.displays[counter][2])
             else:
                 pct = 0.0
-            tmp_str = r"%10s:%7d/%7d  [%03.1f%%]  " % \
+            tmp_str = r"%10s:%7d/%7d  [%2.0f%%]  " % \
                 (self.displays[counter][0][0:11], self.displays[counter][1],
                  self.displays[counter][2], pct)
             display_str = display_str + tmp_str

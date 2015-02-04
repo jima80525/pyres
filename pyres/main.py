@@ -41,7 +41,9 @@ def add_url(args):
         feedmgr = RssFeed(args.base_dir)
         name, added = feedmgr.add_episodes_from_feed(_database, args.url,
                                                      args.start_date)
-        if args.start_date:
+        if not name or not added:
+            print("Error: No episodes added")
+        elif args.start_date:
             print("%-50s: %3d episodes since %s" %
                   (name, added, utils.date_as_string(args.start_date)))
         else:

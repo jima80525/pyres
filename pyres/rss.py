@@ -19,6 +19,12 @@ class RssFeed(object):
         Pull down the rss feed and add return episodes
         """
         feed = feedparser.parse(url)
+
+        # some feeds have ill formed entries.  Skip them if they
+        # don't have a channel or a title
+        if 'channel' not in feed or 'title' not in feed['channel']:
+            return None, None
+
         # get name and clean out any characters we don't like before we start
         # using it.
         podcast_name = feed['channel']['title']
@@ -41,13 +47,17 @@ class RssFeed(object):
             date = time.strptime(raw_date, "%a, %d %b %Y %X")
             try:
                 title = feed_data['title'].encode('cp1252', 'replace')
+                # titles with single quotes (') provide an extra challenge for
+                # SQL entries.
+                title = title.replace("'", "''")
                 link = None
-                for k in feed_data["links"]:
-                    if 'audio' in k['type']:
-                        link = k['href'] or link
-                episodes.append(Episode(base_path=podcast_path_name, date=date,
-                                        title=title, url=link,
-                                        podcast=podcast_name))
+                if 'links' in feed_data:
+                    for k in feed_data["links"]:
+                        if 'type' in k and 'audio' in k['type']:
+                            link = k['href'] or link
+                    episodes.append(Episode(base_path=podcast_path_name,
+                                            date=date, title=title, url=link,
+                                            podcast=podcast_name))
             except KeyError:
                 logging.error("Failed processing feed title")
                 raise
@@ -56,6 +66,8 @@ class RssFeed(object):
     def add_episodes_from_feed(self, database, url, start_date=None):
         """ Add episodes from url into database. """
         name, episodes = self.process_feed(url)
+        if not name or not episodes:
+            return None, None
 
         # adds table for podcast - likely to exist already
         database.add_podcast(name, url)
