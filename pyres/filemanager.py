@@ -10,7 +10,7 @@ import pyres.utils as utils
 class FileManager(object):
     """ Class to manage filesystem on mp3 player """
     #def __init__(self, base_dir="TestFiles"):
-    def __init__(self, base_dir="/media/jima/549C-9E8D/"):
+    def __init__(self, base_dir="/media/jima/EC57-25A1/"):
         self.base_dir = os.path.join(base_dir, "podcasts")
         utils.mkdir_p(self.base_dir)
 
