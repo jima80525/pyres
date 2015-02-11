@@ -78,8 +78,8 @@ class RssFeed(object):
             # when comparing,  date None is always the least
             if start_date < _episode.date:
                 logging.debug("Adding %s", utils.date_as_string(_episode.date))
-                database.add_new_episode_data(name, _episode)
-                episodes_added += 1
+                if database.add_new_episode_data(name, _episode):
+                    episodes_added += 1
         return name, episodes_added
 
 if __name__ == "__main__":

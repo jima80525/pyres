@@ -42,7 +42,7 @@ def add_url(args):
         name, added = feedmgr.add_episodes_from_feed(_database, args.url,
                                                      args.start_date)
         if not name or not added:
-            print("Error: No episodes added")
+            print "Error: No episodes added"
         elif args.start_date:
             print("%-50s: %3d episodes since %s" %
                   (name, added, utils.date_as_string(args.start_date)))
@@ -61,6 +61,7 @@ def update_download_list(args):
         for _tuple in podcasts:
             name, added = feedmgr.add_episodes_from_feed(_database, _tuple[0],
                                                          _tuple[1])
+            print "In update_download with %s added %d", name, added
             if added:
                 total_added += added
                 print("%-50s: %3d episodes since %s" %
@@ -117,6 +118,22 @@ def download_to_player(args):
 def convert_database(args):
     """ debug routine to convert the database """
     with PodcastDatabase(args.database) as _database:
+        # This is useful for removing duplicate tables
+        #_database.delete_podcast(
+            #"NPR Programs Fresh Air Podcast")
+            #"NPR Wait Wait... Dont Tell Me! Podcast")
+            #"NPR TED Radio Hour Podcast")
+            #"NPR How To Do Everything Podcast")
+            #"Podcast Error")
+            #"NPR People Hmmm....  Krulwich on Science Podcast")
+
+        # this is handy to show the podcasts and dates
+        #podcasts = _database.jima_get_podcast_urls()
+        #for _tuple in sorted(podcasts):
+            #print "%-50s \t %-49s \t %s" % (_tuple[0], _tuple[1],
+                                            #utils.date_as_string(_tuple[2]))
+
+        # fix up the table for one podcast
         _database.convert_tables()
 
 

@@ -21,7 +21,7 @@ class PodcastDatabase(object):
         # Create it if not
         try:
             self.connection.execute("CREATE TABLE podcasts (name text, url "
-                                    "text)")
+                                    "text unique)")
         except sqlite3.OperationalError:
             pass
 
@@ -52,8 +52,8 @@ class PodcastDatabase(object):
                 return  # already exists
 
             cursor.execute("INSERT INTO podcasts VALUES (?, ?)", (name, url))
-            cursor.execute("CREATE TABLE '%s' (date text, title text, file "
-                           "text, url text, size integer, state integer)"
+            cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
+                           "file text, url text, size integer, state integer)"
                            % name)
 
     def add_new_episode_data(self, table, episode):
@@ -63,7 +63,7 @@ class PodcastDatabase(object):
         if not episode.date or not episode.title or not episode.url:
             print("Got a bad episode from server, will not add:", episode.date,
                   episode.title, episode.url)
-            return
+            return False
         with self.connection:
             cursor = self.connection.cursor()
             cursor.execute("SELECT * from '%s' where title = '%s'" %
@@ -73,6 +73,11 @@ class PodcastDatabase(object):
                 cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" %
                                table, episode.as_list())
                 logging.debug("Added %s", episode.title)
+                return True
+            else:
+                logging.debug("Didn't add %s as it was already there!",
+                              episode.title)
+                return False
 
     def find_episodes_to_download(self, table):
         """ returns a list of episodes read to download """
@@ -179,6 +184,8 @@ class PodcastDatabase(object):
             for name in names:
                 print
                 print name
+                #if "memory" not in name:
+                    #continue
                 for row in cursor.execute("SELECT * FROM '%s'" % name):
                     row_list = list(row)
                     print row_list[0], row_list[1], row_list[5],
@@ -187,9 +194,46 @@ class PodcastDatabase(object):
                     else:
                         print "BAD URL"
 
+    def clean_table_of_dups(self, name):
+        """ gets all episodes from a table, only keeping unique dates.  Then
+        drops the table and re-creates it with only unique data. """
+        uniques = dict()
+        with self.connection:
+            cursor = self.connection.cursor()
+            for row in cursor.execute("SELECT * FROM '%s'" % name):
+                row_list = list(row)
+                print row_list[0], row_list[1], row_list[5]
+                if not row_list[0] in uniques:
+                    uniques[row_list[0]] = row_list
+            print
+            for key in uniques:
+                print key, uniques[key][1]
+
+            # now drop that table entirely!
+            cursor.execute("DROP TABLE '%s'" % name)
+            # and re-create it
+            cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
+                           "file text, url text, size integer, state integer)"
+                           % name)
+
+            for key in uniques:
+                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" %
+                               name, uniques[key])
+
     def convert_tables(self):
         """ Utility to change format of the podcast tables. """
-        pass
+        # JHA this hac returned names, too podcasts = self.jima_get_podcast_urls()
+        for _tuple in sorted(podcasts):
+            print "%-49s" % (_tuple[1])
+            self.clean_table_of_dups(_tuple[1])
+
+        #name = 'NPR Fresh Air'
+        #name = 'How To Do Everything'
+        #name = 'TED Radio Hour'
+        #name = 'This American Life'
+        #name = 'Wait Wait... Dont Tell Me!'
+        #self.clean_table_of_dups(name)
+        #pass
         # use old version of string to date function
         #utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
 
