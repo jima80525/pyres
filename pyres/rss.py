@@ -46,7 +46,7 @@ class RssFeed(object):
             raw_date = raw_date.rsplit(' ', 1)[0]
             date = time.strptime(raw_date, "%a, %d %b %Y %X")
             try:
-                title = feed_data['title'].encode('cp1252', 'replace')
+                title = feed_data['title'].encode('ascii', 'replace')
                 # titles with single quotes (') provide an extra challenge for
                 # SQL entries.
                 title = title.replace("'", "''")

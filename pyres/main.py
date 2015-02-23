@@ -61,7 +61,6 @@ def update_download_list(args):
         for _tuple in podcasts:
             name, added = feedmgr.add_episodes_from_feed(_database, _tuple[0],
                                                          _tuple[1])
-            print "In update_download with %s added %d", name, added
             if added:
                 total_added += added
                 print("%-50s: %3d episodes since %s" %

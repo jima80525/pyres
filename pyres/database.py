@@ -222,10 +222,10 @@ class PodcastDatabase(object):
 
     def convert_tables(self):
         """ Utility to change format of the podcast tables. """
-        # JHA this hac returned names, too podcasts = self.jima_get_podcast_urls()
-        for _tuple in sorted(podcasts):
-            print "%-49s" % (_tuple[1])
-            self.clean_table_of_dups(_tuple[1])
+        # JHA this  returned names, too podcasts = self.jima_get_podcast_urls()
+        #for _tuple in sorted(podcasts):
+            #print "%-49s" % (_tuple[1])
+            #self.clean_table_of_dups(_tuple[1])
 
         #name = 'NPR Fresh Air'
         #name = 'How To Do Everything'
