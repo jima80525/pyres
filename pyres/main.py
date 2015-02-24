@@ -190,7 +190,8 @@ def parse_command_line(input_args):
     download_parser = subparsers.add_parser('download', help="Download "
                                             "episodes to mp3 player",
                                             parents=[base])
-    download_parser.add_argument('--mp3-player', action='store', default="F:/",
+    download_parser.add_argument('--mp3-player', action='store',
+                                 default="/media/jima/EC57-25A1/",
                                  help='The path to the mp3 player including '
                                  'drive')
     download_parser.set_defaults(func=download_to_player)
