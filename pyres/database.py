@@ -70,10 +70,18 @@ class PodcastDatabase(object):
                            (table, episode.title))
             check1 = cursor.fetchone()
             if check1 is None:
-                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" %
-                               table, episode.as_list())
-                logging.debug("Added %s", episode.title)
-                return True
+                try:
+                    cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)"
+                                   % table, episode.as_list())
+                    logging.debug("Added %s", episode.title)
+                    return True
+                except:
+                    # Fresh air is giving me duplicate titles for some reason
+                    # The table will throw on a duplicate name.  We'll ignore
+                    # it for now.  Would be good to figure out what's going
+                    # on there
+                    pass
+
             else:
                 logging.debug("Didn't add %s as it was already there!",
                               episode.title)
