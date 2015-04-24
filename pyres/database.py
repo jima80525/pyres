@@ -183,24 +183,24 @@ class PodcastDatabase(object):
                 names.append(name[0])
         return names
 
-    def show_podcasts(self):
+    def show_podcasts(self, names_only):
         """Display information from database.
         """
         names = self.get_podcast_names()
+
         with self.connection:
             cursor = self.connection.cursor()
             for name in names:
-                print
                 print name
-                #if "memory" not in name:
-                    #continue
-                for row in cursor.execute("SELECT * FROM '%s'" % name):
-                    row_list = list(row)
-                    print row_list[0], row_list[1], row_list[5],
-                    if row_list[3]:
-                        print "URL OK"
-                    else:
-                        print "BAD URL"
+                if not names_only:
+                    for row in cursor.execute("SELECT * FROM '%s'" % name):
+                        row_list = list(row)
+                        print row_list[0], row_list[1], row_list[5],
+                        if row_list[3]:
+                            print "URL OK"
+                        else:
+                            print "BAD URL"
+                    print # extra line to separate podcasts
 
     def clean_table_of_dups(self, name):
         """ gets all episodes from a table, only keeping unique dates.  Then
@@ -245,16 +245,21 @@ class PodcastDatabase(object):
         # use old version of string to date function
         #utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
 
+        #######################################################################
+        # Print names of podcasts
+        names = self.get_podcast_names()
+        for name in names:
+            print name
+
+        #######################################################################
+        # Code below here will read all tables and allow conversion of field
+        # values in individual podcasts
         #names = self.get_podcast_names()
+        #print names
+
         #with self.connection:
             #cursor = self.connection.cursor()
             #for name in names:
-                #if "Invisible" not in name:
-                    #continue
-                #print "GOT IT %s" % name
-                #title = "Kickstart Radiotopia- A Storytelling Revolution"
-                #cursor.execute("DELETE FROM '%s' WHERE title='%s'" % (name,
-                                                                      #title))
                 #newtable = list()
                 #print "----------------------------------------"
                 #print name
@@ -263,17 +268,17 @@ class PodcastDatabase(object):
                     # right now we're converting date from mm/dd/yy to
                     # yyyy/mm/dd to it sorts correctly
                     #row_list = list(row)
-                    #date = utils.string_to_date(row_list[0])
-                    #row_list[0] = utils.date_as_string(date)
+                    #row_list.append(0)
                     #newtable.append(row_list)
                 #print newtable
                 #cursor.execute("DROP TABLE '%s'" % name)
-                #cursor.execute("CREATE TABLE '%s' (date text, title text, "
-                               #"file text, url text, size integer, state "
-                               #"integer)" % name)
+                #cursor.execute("CREATE TABLE '%s' (date text, "
+                               #"title text unique, file text, url text, "
+                               #"size integer, state integer, convert integer)"
+                           #% name)
                 #for podcast in newtable:
                     #cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?" \
-                                   #", ?)" % name, podcast)
+                                   #", ?, ?)" % name, podcast)
 
 if __name__ == "__main__":
     print "Not Implemented"

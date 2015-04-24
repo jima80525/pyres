@@ -31,7 +31,14 @@ def backup_database(args):
 def display_database(args):
     """ debug routine to display the database """
     with PodcastDatabase(args.database) as _database:
-        _database.show_podcasts()
+        _database.show_podcasts(args.names_only)
+
+
+def delete_podcast(args):
+    """ Delete a podcast from the database """
+    print args
+    with PodcastDatabase(args.database) as _database:
+        _database.delete_podcast(args.name)
 
 
 def add_url(args):
@@ -156,7 +163,16 @@ def parse_command_line(input_args):
     # Dump database command
     dump_parser = subparsers.add_parser('dump', help='Show contents of '
                                         'database', parents=[base])
+    dump_parser.add_argument('-n', '--names-only', action='store_true',
+                             help="only display podcast names")
     dump_parser.set_defaults(func=display_database)
+
+    # delete podcast command
+    delete_parser = subparsers.add_parser('delete', help='remove podcast from '
+                                        'database', parents=[base])
+    delete_parser.add_argument('name', action='store', help="the name of the "
+                            "podcast to delete")
+    delete_parser.set_defaults(func=delete_podcast)
 
     # Add new URL command
     add_parser = subparsers.add_parser('add', help='Add a new podcast',
