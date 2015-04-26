@@ -100,11 +100,11 @@ def process_rss_feeds(args):
         downloader.download_url_list()
         for episode in downloader.return_successful_files():
             if (_database.does_podcast_need_fixup(episode.podcast)):
-                print "Fixing...",
+                print "Fixing ", episode.file_name
                 utils.fixup_mp3_file(episode.file_name)
 
             _database.mark_episode_downloaded(episode)
-            print episode.file_name,
+            print episode.file_name
 
 
 def download_to_player(args):

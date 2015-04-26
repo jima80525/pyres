@@ -268,21 +268,19 @@ class PodcastDatabase(object):
             cursor = self.connection.cursor()
             urls = list(cursor.execute('SELECT * FROM podcasts ORDER BY name'))
 
-            #casts = list()
             for _tuple in urls:
                 name = _tuple[0]
                 url = _tuple[1]
                 flag = _tuple[2]
-                print flag, name
+                print flag, name, url
             #print urls
+            # code below here does the actual work
             #cursor.execute("DROP TABLE 'podcasts'")
             #self.connection.execute("CREATE TABLE podcasts (name text, "
                                     #"url text unique, needsfix bool)")
             #for _tuple in urls:
-                #url = _tuple[0]
-                #name = _tuple[1]
                 #cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)",
-                               #(name, url))
+                               #(_tuple[0], _tuple[1]))
 
         #######################################################################
         # Print names of podcasts
