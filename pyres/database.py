@@ -20,8 +20,8 @@ class PodcastDatabase(object):
         # test to ensure that the main podcasts table exists
         # Create it if not
         try:
-            self.connection.execute("CREATE TABLE podcasts (name text, url "
-                                    "text unique)")
+            self.connection.execute("CREATE TABLE podcasts (name text, "
+                                    "url text unique, needsfix bool)")
         except sqlite3.OperationalError:
             pass
 
@@ -51,7 +51,7 @@ class PodcastDatabase(object):
             if check1 is not None:
                 return  # already exists
 
-            cursor.execute("INSERT INTO podcasts VALUES (?, ?)", (name, url))
+            cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)", (name, url))
             cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
                            "file text, url text, size integer, state integer)"
                            % name)
@@ -136,6 +136,21 @@ class PodcastDatabase(object):
         logging.debug("in on player : %s %s", episode.podcast, episode.title)
         self._update_state(episode.podcast, episode.title, 2)
 
+    def mark_podcast_for_fixups(self, name):
+        """ update flag on podcast to indicate it needs fixup """
+        with self.connection:
+            self.connection.execute("UPDATE 'podcasts' SET needsfix=1 where "
+                                    "name = '%s'" % (name))
+
+    def does_podcast_need_fixup(self, name):
+        """ Checks database to see if this podcast needs fixups. """
+        with self.connection:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT needsfix from 'podcasts' where name = '%s'" \
+                           % (name))
+            check1 = cursor.fetchone()
+            return bool(check1[0])
+
     def delete_podcast(self, name):
         """Delete a podcast from the main table.  Also drops the episode table
            for this podcast.
@@ -191,7 +206,10 @@ class PodcastDatabase(object):
         with self.connection:
             cursor = self.connection.cursor()
             for name in names:
-                print name
+                cursor.execute("SELECT needsfix from 'podcasts' where name "
+                               "= '%s'" % (name))
+                check1 = cursor.fetchone()
+                print("%s (%s)" % (name, self.does_podcast_need_fixup(name)))
                 if not names_only:
                     for row in cursor.execute("SELECT * FROM '%s'" % name):
                         row_list = list(row)
@@ -244,12 +262,33 @@ class PodcastDatabase(object):
         #pass
         # use old version of string to date function
         #utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
+        #######################################################################
+        # Walk through podcasts table, adding field
+        with self.connection:
+            cursor = self.connection.cursor()
+            urls = list(cursor.execute('SELECT * FROM podcasts ORDER BY name'))
+
+            #casts = list()
+            for _tuple in urls:
+                name = _tuple[0]
+                url = _tuple[1]
+                flag = _tuple[2]
+                print flag, name
+            #print urls
+            #cursor.execute("DROP TABLE 'podcasts'")
+            #self.connection.execute("CREATE TABLE podcasts (name text, "
+                                    #"url text unique, needsfix bool)")
+            #for _tuple in urls:
+                #url = _tuple[0]
+                #name = _tuple[1]
+                #cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)",
+                               #(name, url))
 
         #######################################################################
         # Print names of podcasts
-        names = self.get_podcast_names()
-        for name in names:
-            print name
+        #names = self.get_podcast_names()
+        #for name in names:
+            #print name
 
         #######################################################################
         # Code below here will read all tables and allow conversion of field

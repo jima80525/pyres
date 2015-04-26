@@ -36,9 +36,14 @@ def display_database(args):
 
 def delete_podcast(args):
     """ Delete a podcast from the database """
-    print args
     with PodcastDatabase(args.database) as _database:
         _database.delete_podcast(args.name)
+
+
+def flag_fixup_for_podcast(args):
+    """ Mark a podcast as needing fixups """
+    with PodcastDatabase(args.database) as _database:
+        _database.mark_podcast_for_fixups(args.name)
 
 
 def add_url(args):
@@ -94,8 +99,12 @@ def process_rss_feeds(args):
         downloader = PodcastDownloader(episodes)
         downloader.download_url_list()
         for episode in downloader.return_successful_files():
+            if (_database.does_podcast_need_fixup(episode.podcast)):
+                print "Fixing...",
+                utils.fixup_mp3_file(episode.file_name)
+
             _database.mark_episode_downloaded(episode)
-            print episode.file_name
+            print episode.file_name,
 
 
 def download_to_player(args):
@@ -124,21 +133,6 @@ def download_to_player(args):
 def convert_database(args):
     """ debug routine to convert the database """
     with PodcastDatabase(args.database) as _database:
-        # This is useful for removing duplicate tables
-        #_database.delete_podcast(
-            #"NPR Programs Fresh Air Podcast")
-            #"NPR Wait Wait... Dont Tell Me! Podcast")
-            #"NPR TED Radio Hour Podcast")
-            #"NPR How To Do Everything Podcast")
-            #"Podcast Error")
-            #"NPR People Hmmm....  Krulwich on Science Podcast")
-
-        # this is handy to show the podcasts and dates
-        #podcasts = _database.jima_get_podcast_urls()
-        #for _tuple in sorted(podcasts):
-            #print "%-50s \t %-49s \t %s" % (_tuple[0], _tuple[1],
-                                            #utils.date_as_string(_tuple[2]))
-
         # fix up the table for one podcast
         _database.convert_tables()
 
@@ -181,11 +175,20 @@ def parse_command_line(input_args):
                             'podcast to add')
     add_parser.add_argument('--start-date', action='store',
                             type=cmd_string_to_date, help="date before first "
-                            "podcast to download")
+                            "podcast to download (04/17/15, for example)")
     add_parser.add_argument('--base-dir', action='store', default='Files',
                             help='The local direction in which to store '
                             'podcasts')
     add_parser.set_defaults(func=add_url)
+
+    # podcast flag_fixup command
+    flag_fixup_parser = subparsers.add_parser('flag_fixup', help="mark flag on "
+                                              "podcast indicating mp3 files "
+                                              "need to be post-processed",
+                                              parents=[base])
+    flag_fixup_parser.add_argument('name', action='store', help="the name of "
+                                   "the podcast to flag for fixups")
+    flag_fixup_parser.set_defaults(func=flag_fixup_for_podcast)
 
     # Update existing podcasts - download to from web to computer
     update_parser = subparsers.add_parser('update', help="update the list of "
