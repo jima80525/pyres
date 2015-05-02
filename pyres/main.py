@@ -99,7 +99,7 @@ def process_rss_feeds(args):
         downloader = PodcastDownloader(episodes)
         downloader.download_url_list()
         for episode in downloader.return_successful_files():
-            if (_database.does_podcast_need_fixup(episode.podcast)):
+            if _database.does_podcast_need_fixup(episode.podcast):
                 print "Fixing ", episode.file_name
                 utils.fixup_mp3_file(episode.file_name)
 
@@ -163,9 +163,9 @@ def parse_command_line(input_args):
 
     # delete podcast command
     delete_parser = subparsers.add_parser('delete', help='remove podcast from '
-                                        'database', parents=[base])
+                                          'database', parents=[base])
     delete_parser.add_argument('name', action='store', help="the name of the "
-                            "podcast to delete")
+                               "podcast to delete")
     delete_parser.set_defaults(func=delete_podcast)
 
     # Add new URL command
@@ -182,9 +182,9 @@ def parse_command_line(input_args):
     add_parser.set_defaults(func=add_url)
 
     # podcast flag_fixup command
-    flag_fixup_parser = subparsers.add_parser('flag_fixup', help="mark flag on "
-                                              "podcast indicating mp3 files "
-                                              "need to be post-processed",
+    flag_fixup_parser = subparsers.add_parser('flag_fixup', help="mark flag "
+                                              "on podcast indicating mp3 files"
+                                              " need to be post-processed",
                                               parents=[base])
     flag_fixup_parser.add_argument('name', action='store', help="the name of "
                                    "the podcast to flag for fixups")

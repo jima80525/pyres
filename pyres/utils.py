@@ -42,11 +42,11 @@ def current_date_time_as_string():
     """ Get current date and time as a string suitable for a filename """
     return time.strftime("%Y_%m_%d_%H_%M_%S")
 
+
 def fixup_mp3_file(filename):
     """ convert mp3 file to a format my player will understand """
     song = AudioSegment.from_mp3(filename)
     song.export(filename, format="mp3")
-
 
 
 def acroname(name):

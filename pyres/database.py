@@ -51,7 +51,8 @@ class PodcastDatabase(object):
             if check1 is not None:
                 return  # already exists
 
-            cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)", (name, url))
+            cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)", (name,
+                                                                     url))
             cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
                            "file text, url text, size integer, state integer)"
                            % name)
@@ -75,7 +76,7 @@ class PodcastDatabase(object):
                                    % table, episode.as_list())
                     logging.debug("Added %s", episode.title)
                     return True
-                except:
+                except sqlite3.IntegrityError:
                     # Fresh air is giving me duplicate titles for some reason
                     # The table will throw on a duplicate name.  We'll ignore
                     # it for now.  Would be good to figure out what's going
@@ -146,8 +147,8 @@ class PodcastDatabase(object):
         """ Checks database to see if this podcast needs fixups. """
         with self.connection:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT needsfix from 'podcasts' where name = '%s'" \
-                           % (name))
+            cursor.execute("SELECT needsfix from 'podcasts' where name = "
+                           "'%s'" % (name))
             check1 = cursor.fetchone()
             return bool(check1[0])
 
@@ -206,10 +207,7 @@ class PodcastDatabase(object):
         with self.connection:
             cursor = self.connection.cursor()
             for name in names:
-                cursor.execute("SELECT needsfix from 'podcasts' where name "
-                               "= '%s'" % (name))
-                check1 = cursor.fetchone()
-                print("%s (%s)" % (name, self.does_podcast_need_fixup(name)))
+                print "%s (%s)" % (name, self.does_podcast_need_fixup(name))
                 if not names_only:
                     for row in cursor.execute("SELECT * FROM '%s'" % name):
                         row_list = list(row)
@@ -218,7 +216,7 @@ class PodcastDatabase(object):
                             print "URL OK"
                         else:
                             print "BAD URL"
-                    print # extra line to separate podcasts
+                    print  # extra line to separate podcasts
 
     def clean_table_of_dups(self, name):
         """ gets all episodes from a table, only keeping unique dates.  Then
