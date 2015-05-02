@@ -119,6 +119,16 @@ class TestAddPodcast(object):
             names = _database.get_podcast_names()
             assert len(names) == 0
 
+    def test_fixup_podcast(self, emptyfile):   # pylint: disable=W0621
+        """ test setting fixup flag on podcasts """
+        assert self
+        with PodcastDatabase(emptyfile) as _database:
+            _database.add_podcast('name no fixup', 'url')
+            _database.add_podcast('name fixup', 'url fix')
+            _database.mark_podcast_for_fixups('name fixup')
+            assert _database.does_podcast_need_fixup('name fixup')
+            assert not _database.does_podcast_need_fixup('name no fixup')
+
 
 class TestDeletePodcast(object):
     """ Test the delete_podcast function"""
@@ -310,5 +320,14 @@ class TestGetUrls(object):
         assert self
         with PodcastDatabase(filledfile) as _database:
             assert _database
+            names = _database.get_podcast_urls()
+            assert len(names) == 1
+
+    def test_on_podcast_no_episode(self, emptyfile):  # pylint: disable=W0621
+        """ tests on a podcast without episodes """
+        assert self
+        with PodcastDatabase(emptyfile) as _database:
+            assert _database
+            _database.add_podcast(_FILLED_TABLE_NAME, 'url')
             names = _database.get_podcast_urls()
             assert len(names) == 1

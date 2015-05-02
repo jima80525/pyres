@@ -67,26 +67,17 @@ class PodcastDatabase(object):
             return False
         with self.connection:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT * from '%s' where title = '%s'" %
-                           (table, episode.title))
-            check1 = cursor.fetchone()
-            if check1 is None:
-                try:
-                    cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)"
-                                   % table, episode.as_list())
-                    logging.debug("Added %s", episode.title)
-                    return True
-                except sqlite3.IntegrityError:
-                    # Fresh air is giving me duplicate titles for some reason
-                    # The table will throw on a duplicate name.  We'll ignore
-                    # it for now.  Would be good to figure out what's going
-                    # on there
-                    pass
-
-            else:
-                logging.debug("Didn't add %s as it was already there!",
-                              episode.title)
-                return False
+            try:
+                cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)"
+                               % table, episode.as_list())
+                logging.debug("Added %s", episode.title)
+                return True
+            except sqlite3.IntegrityError:
+                # Fresh air is giving me duplicate titles for some reason
+                # The table will throw on a duplicate name.  We'll ignore
+                # it for now.  Would be good to figure out what's going
+                # on there
+                pass
 
     def find_episodes_to_download(self, table):
         """ returns a list of episodes read to download """
