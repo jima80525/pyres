@@ -195,6 +195,8 @@ def _test_file(filename):
     # It also runs doctest, but only on the modules in TESTS_DIRECTORY.
     if not filename.endswith(".py"):
         filename += ".py"
+    if not filename.startswith("test_"):
+        filename = "test_" + filename
     return pytest.main(PYTEST_FLAGS + [os.path.join(TESTS_DIRECTORY,
                                                     filename)])
 

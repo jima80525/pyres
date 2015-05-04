@@ -91,17 +91,13 @@ def add_serial():
 
 
 @task
-def test():
-    """Run the unit tests."""
-    raise SystemExit(_test())
-
-
-@task
 @consume_args
-def test_file(args):
+def test(args):
     """Run the unit tests."""
-    print("CALLING WITH %s" % args[0])
-    raise SystemExit(_test_file(args[0]))
+    if len(args) == 0:
+        raise SystemExit(_test())
+    else:
+        raise SystemExit(_test_file(args[0]))
 
 
 @task
