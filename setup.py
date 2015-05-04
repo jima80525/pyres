@@ -183,6 +183,22 @@ def _test():
     return pytest.main(PYTEST_FLAGS + [TESTS_DIRECTORY])
 
 
+def _test_file(filename):
+    """Run a given unit test file.
+
+    :return: exit code
+    """
+    # Make sure to import pytest in this function. For the reason, see here:
+    # <http://pytest.org/latest/goodpractises.html#integration-with-setuptools-test-commands>  # NOPEP8
+    import pytest
+    # This runs the unit tests.
+    # It also runs doctest, but only on the modules in TESTS_DIRECTORY.
+    if not filename.endswith(".py"):
+        filename += ".py"
+    return pytest.main(PYTEST_FLAGS + [os.path.join(TESTS_DIRECTORY,
+                                                    filename)])
+
+
 def _test_all():
     """Run lint and tests.
 
