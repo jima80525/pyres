@@ -189,8 +189,4 @@ class PodcastDownloader(object):
         return self.successful_files
 
 if __name__ == "__main__":
-    #DWN = PodcastDownloader(SHORT_EPISODES)
-    #DWN.download_url_list()
-    #download_url_list(URLS)
-    #download_url_list(MIXED)
     pass

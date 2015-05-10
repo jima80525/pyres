@@ -38,6 +38,7 @@ CODE_DIRECTORY = 'pyres'
 DOCS_DIRECTORY = 'docs'
 TESTS_DIRECTORY = 'pyres/test'
 PYTEST_FLAGS = ['--doctest-modules']
+#PYTEST_FLAGS = ['--doctest-modules', '-s']
 
 # Import metadata. Normally this would just be:
 #
