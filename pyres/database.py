@@ -62,8 +62,10 @@ class PodcastDatabase(object):
         present, do nothing.
         """
         if not episode.date or not episode.title or not episode.url:
-            print("Got a bad episode from server, will not add:", episode.date,
-                  episode.title, episode.url)
+            print("Got a bad episode from %s server, will not add: (date, "
+                  "title, url):" % table, episode.date, episode.title,
+                  episode.url)  # not using %s formats for last three in case
+                                # they are None
             return False
         with self.connection:
             cursor = self.connection.cursor()
@@ -77,7 +79,7 @@ class PodcastDatabase(object):
                 # The table will throw on a duplicate name.  We'll ignore
                 # it for now.  Would be good to figure out what's going
                 # on there
-                pass
+                return True
 
     def find_episodes_to_download(self, table):
         """ returns a list of episodes read to download """

@@ -49,7 +49,7 @@ def filledfile(emptyfile):  # pylint: disable=W0621
 def add_and_check(database, table_name, episode, expected=1):
     """ utility to add episode and ensure there is a single episode for that
     podcast """
-    database.add_new_episode_data(table_name, episode)
+    assert database.add_new_episode_data(table_name, episode)
     eps = database.find_episodes_to_download(table_name)
     assert len(eps) == expected
     eps = database.find_episodes_to_copy(table_name)
@@ -228,17 +228,17 @@ class TestAddEpisode(object):
             # now add an ill-formed episode - should not be added
             save = episode.date
             episode.date = None
-            add_and_check(_database, table_name, episode)
+            assert not _database.add_new_episode_data(table_name, episode)
             episode.date = save
 
             save = episode.title
             episode.title = None
-            add_and_check(_database, table_name, episode)
+            assert not _database.add_new_episode_data(table_name, episode)
             episode.title = save
 
             save = episode.url
             episode.url = None
-            add_and_check(_database, table_name, episode)
+            assert not _database.add_new_episode_data(table_name, episode)
             episode.url = save
 
 
