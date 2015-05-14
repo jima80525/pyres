@@ -5,13 +5,26 @@
 This project provides a simple podcast subscription manager which pulls podcasts
 from the web and copies them to an MP3 player.
 
+It has been developed for and only used on a Coby MP3 play with USB connection
+and designed around the author's use model, which is far simpler than what is
+supported by something like itunes.  It manages rss subscriptions, downloading
+new episodes to the host system for storage and then transfers all of the
+downloaded episodes to the mp3 player in a single batch.  The podcasts are all
+put into a single directory and are written in chronological order so that the
+player sees them in that order.
+
+See "Development" below for more features that will be coming for this tool.
+
 Project Setup
 =============
 
 Instructions
 ------------
 
-Instructions go here
+Download the package and type ./setup.py install.
+Running 'pyres' will invoke the app.  Use --help to see list of options.  Pyres
+starts with an empty database so you'll need to add new podcasts to see it do
+much of anything.
 
 Supported Python Versions
 =========================
@@ -23,9 +36,9 @@ Python Project Template supports the following versions out of the box:
 Licenses
 ========
 
-The code which makes up this Python project template is licensed under the MIT/X11 license. Feel free to use it in your free software/open-source or proprietary projects.
-
-The template also uses a number of other pieces of software, whose licenses are listed here for convenience. It is your responsibility to ensure that these licenses are up-to-date for the version of each tool you are using.
+The code which makes up this Python project template is licensed under the
+MIT/X11 license. Feel free to use it in your free software/open-source or
+proprietary projects.
 
 +------------------------+----------------------------------+
 |Project                 |License                           |
@@ -48,6 +61,8 @@ The template also uses a number of other pieces of software, whose licenses are 
 +------------------------+----------------------------------+
 |tox                     |MIT/X11 License                   |
 +------------------------+----------------------------------+
+|pydub                   |MIT/X11 License                   |
++------------------------+----------------------------------+
 
 Issues
 ======
@@ -56,6 +71,12 @@ Please report any bugs or requests that you have using the GitHub issue tracker!
 
 Development
 ===========
+Features to be added:
+* tracking and removing items from MP3 player
+* processing audiobooks onto MP3 player
+* managing a queue of audiobooks (filling player when possible)
+* managing already-completed, fixed-duration podcasts (catch-up mode)
+* tests need to be expanded to cover more of the top level functions
 
 Authors
 =======
