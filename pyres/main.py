@@ -137,7 +137,7 @@ def convert_database(args):
         _database.convert_tables()
 
 
-def parse_command_line(input_args):
+def parse_command_line():
     """ Manage command line options """
     # base args are shared with all subcommands
     base = argparse.ArgumentParser(add_help=False)
@@ -221,13 +221,13 @@ def parse_command_line(input_args):
                                            "were made", parents=[base])
     convert_parser.set_defaults(func=convert_database)
 
-    args = parser.parse_args(input_args)
+    args = parser.parse_args(sys.argv[1:])
     return args
 
 
-def main(input_args):
+def main():
     """ Main entry point for pyres application """
-    args = parse_command_line(input_args)
+    args = parse_command_line()
 
     # database backup is done before any operation by default
     if not args.no_backup:

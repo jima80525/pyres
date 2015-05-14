@@ -63,8 +63,12 @@ def run(args):
     # executable. So we just pass the package name in as the executable name,
     # since it's close enough. This should never be seen by an end user
     # installing through Setuptools anyway.
+    # This is stuffed into sys.argv as setuptools calls entry points without
+    # args.
     from pyres.main import main
-    raise SystemExit(main(args))
+    sys.argv = ['pyres']
+    sys.argv.extend(args)
+    raise SystemExit(main())
 
 
 @task

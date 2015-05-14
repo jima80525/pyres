@@ -1,4 +1,6 @@
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
+""" Setup tools file for pyres application """
 from __future__ import print_function
 
 import os
@@ -9,10 +11,11 @@ import subprocess
 ## Python 2.6 subprocess.check_output compatibility. Thanks Greg Hewgill!
 if 'check_output' not in dir(subprocess):
     def check_output(cmd_args, *args, **kwargs):
+        """ replacement for python 2.7 check_output function """
         proc = subprocess.Popen(
             cmd_args, *args,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-        out, err = proc.communicate()
+        out, _ = proc.communicate()
         if proc.returncode != 0:
             raise subprocess.CalledProcessError(args)
         return out
@@ -38,11 +41,13 @@ CODE_DIRECTORY = 'pyres'
 DOCS_DIRECTORY = 'docs'
 TESTS_DIRECTORY = 'pyres/test'
 PYTEST_FLAGS = ['--doctest-modules']
+# the following line allows stdout to be printing all the time, not just on
+# error
 #PYTEST_FLAGS = ['--doctest-modules', '-s']
 
 # Import metadata. Normally this would just be:
 #
-#     from jimatest import metadata
+#     from pyres import metadata
 #
 # However, when we do this, we also import `jimatest/__init__.py'. If this
 # imports names from some other modules and these modules have third-party
@@ -51,7 +56,7 @@ PYTEST_FLAGS = ['--doctest-modules']
 # instead, effectively side-stepping the dependency problem. Please make sure
 # metadata has no dependencies, otherwise they will need to be added to
 # the setup_requires keyword.
-metadata = imp.load_source(
+METADATA = imp.load_source(
     'metadata', os.path.join(CODE_DIRECTORY, 'metadata.py'))
 
 
@@ -72,15 +77,16 @@ def get_project_files():
             if subdir.startswith('.'):
                 subdirs.remove(subdir)
 
-        for f in files:
-            if f.startswith('.'):
+        for file_ in files:
+            if file_.startswith('.'):
                 continue
-            project_files.append(os.path.join(top, f))
+            project_files.append(os.path.join(top, file_))
 
     return project_files
 
 
 def is_git_project():
+    """ returns true if this is a git project """
     return os.path.isdir('.git')
 
 
@@ -122,7 +128,6 @@ def print_success_message(message):
     :type message: :class:`str`
     """
     try:
-        import colorama
         print(colorama.Fore.GREEN + message + colorama.Fore.RESET)
     except ImportError:
         print(message)
@@ -135,7 +140,6 @@ def print_failure_message(message):
     :type message: :class:`str`
     """
     try:
-        import colorama
         print(colorama.Fore.RED + message + colorama.Fore.RESET,
               file=sys.stderr)
     except ImportError:
@@ -150,8 +154,8 @@ def read(filename):
     :return: the file's content
     :rtype: :class:`str`
     """
-    with open(os.path.join(os.path.dirname(__file__), filename)) as f:
-        return f.read()
+    with open(os.path.join(os.path.dirname(__file__), filename)) as file_:
+        return file_.read()
 
 
 def _lint():
@@ -239,14 +243,14 @@ if sys.version_info < (2, 7) or (3, 0) <= sys.version_info < (3, 3):
 # See here for more options:
 # <http://pythonhosted.org/setuptools/setuptools.html>
 setup_dict = dict(
-    name=metadata.package,
-    version=metadata.version,
-    author=metadata.authors[0],
-    author_email=metadata.emails[0],
-    maintainer=metadata.authors[0],
-    maintainer_email=metadata.emails[0],
-    url=metadata.url,
-    description=metadata.description,
+    name=METADATA.package,
+    version=METADATA.version,
+    author=METADATA.authors[0],
+    author_email=METADATA.emails[0],
+    maintainer=METADATA.authors[0],
+    maintainer_email=METADATA.emails[0],
+    url=METADATA.url,
+    description=METADATA.description,
     long_description=read('README.rst'),
     # Find a list of classifiers here:
     # <http://pypi.python.org/pypi?%3Aaction=list_classifiers>
@@ -278,7 +282,7 @@ setup_dict = dict(
     zip_safe=False,  # don't use eggs
     entry_points={
         'console_scripts': [
-            'jimatest_cli = jimatest.main:entry_point'
+            'pyres = pyres.main:main'
         ],
         # if you have a gui, use this
         # 'gui_scripts': [
