@@ -47,6 +47,6 @@ class TestFilemanager(object):
         filemgr = pyres.filemanager.FileManager(base_dir=copy_base)
         assert filemgr
 
-        filemgr.copy_files_to_player(episodes)
+        filemgr.copy_episodes_to_player(episodes)
         assert mock_copy.called
         assert mock_copy.call_count == 2

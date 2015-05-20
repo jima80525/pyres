@@ -2,48 +2,89 @@
 manages the files on the mp3 player
 """
 import os
+import re
 import logging
 import shutil
 import pyres.utils as utils
 
 
+def _double_digit_name(name):
+    """ Makes all numbers two digit numbers by adding a leading 0 where
+    necessary.  Three digit or longer numbers are unaffected. """
+    # do a little clean up to start with
+    name = name.rstrip().replace('\\', '/')
+    name = name.rstrip('/')  # make sure we don't have trailing / chars
+    # now pull of the trailing '3' on .mp3 filenames so we don't convert that
+    mp3suffix = ''
+    if name.endswith('mp3'):
+        name = name[:-1]
+        mp3suffix = '3'
+
+    # the regex produces a empty string at the end, skip that or zfill will
+    # expand it to 00.  Note we cannot just remove the last element from the
+    # split as it does not always produce an empty element.  Joy
+    elements = re.split(r'(\d+)', name)
+    if elements[-1] == '':
+        elements.pop()
+    result = ''.join(element.zfill(2) for element in elements) + mp3suffix
+    return re.sub(' +', ' ', result)  # remove double spaces
+
+
 class FileManager(object):
     """ Class to manage filesystem on mp3 player """
-    #def __init__(self, base_dir="TestFiles"):
-    def __init__(self, base_dir="/media/jima/EC57-25A1/"):
-        self.base_dir = os.path.join(base_dir, "podcasts")
+    def __init__(self, base_dir):
+        # set default value for mp3 player
+        #base_dir = base_dir or "TestFiles"
+        base_dir = base_dir or "/media/jima/EC57-25A1/"
+        print base_dir
+        self.base_dir = base_dir
         utils.mkdir_p(self.base_dir)
 
     def does_filesystem_exist(self):
-        """ Tests for existence  - this is unused, but it's a placeholder to
-        keep lint happy until I add the management of files on the mp3 player -
-        removing and copying audio books.  It might not make sense to keep this
-        as a class. """
+        """ Tests for existence  - this is unused in real code, but it's handy
+        for unit tests.  It was originally added to keep lint happy. """
         return os.path.exists(self.base_dir)
 
-    def copy_files_to_player(self, episodes):
+    def _make_dir_on_player(self, dir_name):
+        """ Makes a directory on the MP3 player """
+        utils.mkdir_p(os.path.join(self.base_dir, dir_name))
+
+    def copy_audiobook(self, source_dir, dest_dir=None):
+        """ Main routine to convert and copy files to mp3 player """
+        if not dest_dir:
+            dest_dir = source_dir
+            print "Copying audiobook from %s" % source_dir
+        else:
+            print "Coping audiobook from %s to %s" % (source_dir, dest_dir)
+
+        for root, dirs, files in os.walk(source_dir):
+            dirs.sort()
+            for dir_name in dirs:
+                full_dir = os.path.join(root, _double_digit_name(dir_name))
+                self._make_dir_on_player(full_dir)
+            for filename in sorted(files):
+                file_name = os.path.join(root, filename)
+                newfile = _double_digit_name(os.path.join(self.base_dir,
+                                                          file_name))
+                logging.debug("copying %s to %s", file_name, newfile)
+                print "copying to %s" % (newfile)
+                shutil.copyfile(file_name, newfile)
+
+    def copy_episodes_to_player(self, episodes):
         """ Copies the episodes to the mp3 player """
+        # make sure the podcast directory exists
+        podcast_dir = os.path.join(self.base_dir, "podcasts")
+        utils.mkdir_p(podcast_dir)
+
         total = len(episodes)
         counter = 0
         for episode in sorted(episodes, key=lambda x: x.date):
             episode.file_name = episode.file_name.replace('\\', '/')
             (_, tail) = os.path.split(episode.file_name)
-            newfile = os.path.join(self.base_dir, tail)
+            newfile = os.path.join(podcast_dir, tail)
 
             logging.debug("copying %s to %s", episode.file_name, newfile)
             shutil.copyfile(episode.file_name, newfile)
-
-            # keeping win verson around for the time being
-            #if sys.platform == 'win32':
-                #logging.debug('xcopy /Q "%s" "%s" > '
-                              #'tmp_pyres_file_do_not_use',
-                              #episode.file_name, self.base_dir)
-                #os.system('xcopy /Y /Q "%s" "%s" > tmp_pyres_file_do_not_use'
-                          #% (episode.file_name, self.base_dir))
-                #os.remove("tmp_pyres_file_do_not_use")
-            #else:
-                #logging.debug("copying %s to %s", episode.file_name, newfile)
-                #shutil.copyfile(episode.file_name, newfile)
 
             counter += 1
             logging.debug("copied %s to %s", episode.file_name, newfile)

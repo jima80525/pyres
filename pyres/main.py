@@ -125,9 +125,16 @@ def download_to_player(args):
 
         # copy all the files in one list so they come out in date
         # order
-        filemgr.copy_files_to_player(episodes)
+        filemgr.copy_episodes_to_player(episodes)
         for episode in episodes:
             _database.mark_episode_on_mp3_player(episode)
+
+
+def manage_audiobook(args):
+    """ Copies audiobook to mp3 player """
+    print args
+    filemgr = FileManager(args.mp3_player)
+    filemgr.copy_audiobook(args.dir)
 
 
 def convert_database(args):
@@ -210,10 +217,23 @@ def parse_command_line():
                                             "episodes to mp3 player",
                                             parents=[base])
     download_parser.add_argument('--mp3-player', action='store',
-                                 default="/media/jima/EC57-25A1/",
-                                 help='The path to the mp3 player including '
-                                 'drive')
+                                 default=None, help='The path to the mp3 '
+                                 'player including drive')
     download_parser.set_defaults(func=download_to_player)
+
+    # transfer an audiobook to mp3 play in correct order
+    # Player is very fussy about the directory order (it does not sort by name)
+    # Copying them in in the correct order gets it to play in the right order!
+    audiobook_parser = subparsers.add_parser('audiobook', help="update the "
+                                             "list of podcasts to download",
+                                             parents=[base])
+    audiobook_parser.add_argument('--dir', action='store', required=True,
+                                  help='The directory from which the '
+                                  'audiobook will be copied.')
+    audiobook_parser.add_argument('--mp3-player', action='store',
+                                  default=None, help='The path to the mp3 '
+                                  'player including drive')
+    audiobook_parser.set_defaults(func=manage_audiobook)
 
     # debug conversion of database on general command
     convert_parser = subparsers.add_parser('convert', help="debug utility to "
@@ -242,4 +262,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()
