@@ -34,8 +34,8 @@ class FileManager(object):
     """ Class to manage filesystem on mp3 player """
     def __init__(self, base_dir):
         # set default value for mp3 player
-        #base_dir = base_dir or "TestFiles"
-        base_dir = base_dir or "/media/jima/EC57-25A1/"
+        base_dir = base_dir or "TestFiles"
+        #base_dir = base_dir or "/media/jima/EC57-25A1/"
         print base_dir
         self.base_dir = base_dir
         utils.mkdir_p(self.base_dir)
@@ -44,10 +44,6 @@ class FileManager(object):
         """ Tests for existence  - this is unused in real code, but it's handy
         for unit tests.  It was originally added to keep lint happy. """
         return os.path.exists(self.base_dir)
-
-    def _make_dir_on_player(self, dir_name):
-        """ Makes a directory on the MP3 player """
-        utils.mkdir_p(os.path.join(self.base_dir, dir_name))
 
     def copy_audiobook(self, source_dir, dest_dir=None):
         """ Main routine to convert and copy files to mp3 player """
@@ -61,7 +57,7 @@ class FileManager(object):
             dirs.sort()
             for dir_name in dirs:
                 full_dir = os.path.join(root, _double_digit_name(dir_name))
-                self._make_dir_on_player(full_dir)
+                utils.mkdir_p(os.path.join(self.base_dir, full_dir))
             for filename in sorted(files):
                 file_name = os.path.join(root, filename)
                 newfile = _double_digit_name(os.path.join(self.base_dir,
@@ -73,7 +69,8 @@ class FileManager(object):
     def copy_episodes_to_player(self, episodes):
         """ Copies the episodes to the mp3 player """
         # make sure the podcast directory exists
-        podcast_dir = os.path.join(self.base_dir, "podcasts")
+        podcast_dir = os.path.join(self.base_dir, "podcasts_" +
+                                   utils.current_date_time_as_string())
         utils.mkdir_p(podcast_dir)
 
         total = len(episodes)
