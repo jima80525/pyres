@@ -55,9 +55,15 @@ class RssFeed(object):
                     for k in feed_data["links"]:
                         if 'type' in k and 'audio' in k['type']:
                             link = k['href'] or link
-                    episodes.append(Episode(base_path=podcast_path_name,
-                                            date=date, title=title, url=link,
-                                            podcast=podcast_name))
+                    if link:
+                        # the memory palace and a few other podcasts have
+                        # ocassionally published videos.  My player doesn't
+                        # support them, and the above code ends up without a
+                        # valid link for them.  Skip them without an error
+                        episodes.append(Episode(base_path=podcast_path_name,
+                                                date=date, title=title,
+                                                url=link,
+                                                podcast=podcast_name))
             except KeyError:
                 logging.error("Failed processing feed title")
                 raise
