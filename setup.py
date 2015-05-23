@@ -40,10 +40,10 @@ sys.path.append('.')
 CODE_DIRECTORY = 'pyres'
 DOCS_DIRECTORY = 'docs'
 TESTS_DIRECTORY = 'pyres/test'
-PYTEST_FLAGS = ['--doctest-modules']
 # the following line allows stdout to be printing all the time, not just on
 # error
 #PYTEST_FLAGS = ['--doctest-modules', '-s']
+PYTEST_FLAGS = ['--doctest-modules']
 
 # Import metadata. Normally this would just be:
 #
@@ -198,12 +198,7 @@ def _test_file(filename):
     import pytest
     # This runs the unit tests.
     # It also runs doctest, but only on the modules in TESTS_DIRECTORY.
-    if not filename.endswith(".py"):
-        filename += ".py"
-    if not filename.startswith("test_"):
-        filename = "test_" + filename
-    return pytest.main(PYTEST_FLAGS + [os.path.join(TESTS_DIRECTORY,
-                                                    filename)])
+    return pytest.main(PYTEST_FLAGS + ['-k', filename, TESTS_DIRECTORY])
 
 
 def _test_all():

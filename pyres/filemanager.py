@@ -26,7 +26,22 @@ def _double_digit_name(name):
     elements = re.split(r'(\d+)', name)
     if elements[-1] == '':
         elements.pop()
-    result = ''.join(element.zfill(2) for element in elements) + mp3suffix
+    result = ""
+    # this next section is a bit goofy.  We need to tell whether a given
+    # element is a number (\d+) or not.  Only if it's a number do we want to do
+    # the zfill on it.  Else a name like '1b1a1z.1mp3' ends up adding a zero to
+    # the b a and z elements as well as the 1s. (in other words that string
+    # ends up with '010b010a010z.01mp3' instead of '01b01a01z.01mp3')
+    # It might be possible to be clever about the regex grouping on the split,
+    # but that idea is escaping me presently.
+    for element in elements:
+        try:
+            int(element)
+        except ValueError:
+            result += element
+        else:
+            result += element.zfill(2)
+    result += mp3suffix
     return re.sub(' +', ' ', result)  # remove double spaces
 
 
@@ -61,7 +76,7 @@ class FileManager(object):
             for filename in sorted(files):
                 file_name = os.path.join(root, filename)
                 newfile = _double_digit_name(os.path.join(self.base_dir,
-                                                          file_name))
+                                                          dest_dir, file_name))
                 logging.debug("copying %s to %s", file_name, newfile)
                 print "copying to %s" % (newfile)
                 shutil.copyfile(file_name, newfile)
