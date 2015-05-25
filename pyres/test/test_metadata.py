@@ -1,12 +1,9 @@
-""" Test the utils package """
-#import os
-#import time
+""" Test the metadata file """
 import pyres.metadata
-#from mock import patch
 
 
-class TestUtils(object):
-    """ Test for each individual utility function """
+class TestMetadata(object):
+    """ Test for metadata file """
 
     def test_one(self):
         """  this is merely here to satisfy my anal-retentive freakishness to
