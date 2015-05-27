@@ -21,8 +21,9 @@ class RssFeed(object):
         feed = feedparser.parse(url)
 
         # some feeds have ill formed entries.  Skip them if they
-        # don't have a channel or a title
-        if 'channel' not in feed or 'title' not in feed['channel']:
+        # don't have a channel or a title or items
+        if 'items' not in feed or 'channel' not in feed or \
+           'title' not in feed['channel']:
             return None, None
 
         # get name and clean out any characters we don't like before we start
@@ -38,6 +39,9 @@ class RssFeed(object):
 
         episodes = list()
         for feed_data in feed["items"]:
+            if 'published' not in feed_data or 'title' not in feed_data:
+                continue  # only pull episodes that have dates
+
             raw_date = feed_data['published']
             # remove last word from published date - it's a timezone
             # and we don't really care about the timezone as most feeds are
@@ -46,6 +50,10 @@ class RssFeed(object):
             raw_date = raw_date.rsplit(' ', 1)[0]
             date = time.strptime(raw_date, "%a, %d %b %Y %X")
             try:
+                # make sure as end up with only ascii in the titles.  Not great
+                # for international users, but I"m currently only listening to
+                # english language podcasts.  We'll need something better here
+                # to support other character sets.
                 title = feed_data['title'].encode('ascii', 'replace')
                 # titles with single quotes (') provide an extra challenge for
                 # SQL entries.
