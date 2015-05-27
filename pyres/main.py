@@ -6,7 +6,7 @@ import os
 import sys
 import logging
 import pyres.utils as utils
-from pyres.rss import RssFeed
+import pyres.rss
 from pyres.database import PodcastDatabase
 from pyres.filemanager import FileManager
 from pyres.download import PodcastDownloader
@@ -50,9 +50,9 @@ def add_url(args):
     """ add a new podcast to the system """
     logging.debug("in add url with %s %s", args.url, args.start_date)
     with PodcastDatabase(args.database) as _database:
-        feedmgr = RssFeed(args.base_dir)
-        name, added = feedmgr.add_episodes_from_feed(_database, args.url,
-                                                     args.start_date)
+        name, added = pyres.rss.add_episodes_from_feed(_database, args.url,
+                                                       args.base_dir,
+                                                       args.start_date)
         if not name or not added:
             print "Error: No episodes added"
         elif args.start_date:
@@ -67,12 +67,13 @@ def update_download_list(args):
     these to the database.
     """
     with PodcastDatabase(args.database) as _database:
-        feedmgr = RssFeed(args.base_dir)
         podcasts = _database.get_podcast_urls()
         total_added = 0
         for _tuple in podcasts:
-            name, added = feedmgr.add_episodes_from_feed(_database, _tuple[0],
-                                                         _tuple[1])
+            name, added = pyres.rss.add_episodes_from_feed(_database,
+                                                           _tuple[0],
+                                                           args.base_dir,
+                                                           _tuple[1])
             if added:
                 total_added += added
                 print("%-50s: %3d episodes since %s" %

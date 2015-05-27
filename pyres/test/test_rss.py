@@ -1,7 +1,7 @@
 """ Test the rss module """
 import time
 import pytest
-import pyres.rss
+from pyres.rss import add_episodes_from_feed
 from mock import patch
 from mock import Mock
 
@@ -36,9 +36,8 @@ class TestRss(object):
     def test_rss_bad_url(self):
         """ Tests calling an invalid url """
         assert self
-        feedmgr = pyres.rss.RssFeed('base_dir')
         # bad url gives None
-        name, added = feedmgr.add_episodes_from_feed(None, 'a', time.gmtime())
+        name, added = add_episodes_from_feed(None, 'a', 'bdir', time.gmtime())
         assert not name
         assert not added
 
@@ -53,8 +52,7 @@ class TestRss(object):
         feedparser.return_value = basicfeed
 
         # call the function
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(None, 'a', time.gmtime())
+        name, added = add_episodes_from_feed(None, 'a', 'bdir', time.gmtime())
 
         # test that we were called correctly and that the return values are ok
         feedparser.assert_called_once_with('a')
@@ -72,8 +70,7 @@ class TestRss(object):
         feedparser.return_value = basicfeed
 
         # call the function
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(None, 'a', time.gmtime())
+        name, added = add_episodes_from_feed(None, 'a', 'bdir', time.gmtime())
 
         # test that we were called correctly and that the return values are ok
         feedparser.assert_called_once_with('a')
@@ -91,8 +88,7 @@ class TestRss(object):
         feedparser.return_value = basicfeed
 
         # call the function
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(None, 'a', time.gmtime())
+        name, added = add_episodes_from_feed(None, 'a', 'bdir', time.gmtime())
 
         # test that we were called correctly and that the return values are ok
         feedparser.assert_called_once_with('a')
@@ -115,11 +111,10 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
         # I want this to raise and kill the program to know if we need to
         # strengthen the date parsing routine.  So far it has been good
-        pytest.raises(ValueError, feedmgr.add_episodes_from_feed, database,
-                      'a', None)
+        pytest.raises(ValueError, add_episodes_from_feed, database, 'a',
+                      'bdir', None)
 
     @patch('pyres.rss.feedparser.parse')
     @patch('pyres.filemanager.utils.mkdir_p')
@@ -137,8 +132,7 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(database, 'a', None)
+        name, added = add_episodes_from_feed(database, 'a', 'bdir', None)
 
         # check the feedparser mock
         feedparser.assert_called_once_with('a')
@@ -161,8 +155,7 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(database, 'a', None)
+        name, added = add_episodes_from_feed(database, 'a', 'bdir', None)
 
         # check the feedparser mock
         feedparser.assert_called_once_with('a')
@@ -185,8 +178,7 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(database, 'a', None)
+        name, added = add_episodes_from_feed(database, 'a', 'bdir', None)
 
         # check the feedparser mock
         feedparser.assert_called_once_with('a')
@@ -210,8 +202,7 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(database, 'a', None)
+        name, added = add_episodes_from_feed(database, 'a', 'bdir', None)
 
         # check the feedparser mock
         feedparser.assert_called_once_with('a')
@@ -235,9 +226,8 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        pytest.raises(KeyError, feedmgr.add_episodes_from_feed, database,
-                      'a', time.gmtime())
+        pytest.raises(KeyError, add_episodes_from_feed, database, 'a', 'bdir',
+                      time.gmtime())
 
     @patch('pyres.rss.feedparser.parse')
     @patch('pyres.filemanager.utils.mkdir_p')
@@ -253,8 +243,7 @@ class TestRss(object):
         database.add_new_episode_data.return_value = True
 
         # call the routine
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        name, added = feedmgr.add_episodes_from_feed(database, 'a', None)
+        name, added = add_episodes_from_feed(database, 'a', 'bdir', None)
 
         # check the feedparser mock
         feedparser.assert_called_once_with('a')
@@ -278,6 +267,5 @@ class TestRss(object):
 
         # call the routine - it should raise - invalid database is an internal
         # error
-        feedmgr = pyres.rss.RssFeed('base_dir')
-        pytest.raises(AttributeError, feedmgr.add_episodes_from_feed, None,
-                      'a', time.gmtime())
+        pytest.raises(AttributeError, add_episodes_from_feed, None, 'a',
+                      'bdir', time.gmtime())
