@@ -1,3 +1,7 @@
 #!/usr/bin/env python
-import pyres
-print "here I am"
+""" Simple script to run pyres from the command line """
+import sys
+import os
+sys.path.append(os.getcwd())
+import pyres.main
+pyres.main.main()
