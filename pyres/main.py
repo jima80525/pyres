@@ -52,6 +52,7 @@ def add_url(args):
     with PodcastDatabase(args.database) as _database:
         name, added = pyres.rss.add_episodes_from_feed(_database, args.url,
                                                        args.base_dir,
+                                                       int(args.max_update),
                                                        args.start_date)
         if not name or not added:
             print "Error: No episodes added"
@@ -73,11 +74,12 @@ def update_download_list(args):
             name, added = pyres.rss.add_episodes_from_feed(_database,
                                                            _tuple[0],
                                                            args.base_dir,
-                                                           _tuple[1])
+                                                           int(_tuple[1]),
+                                                           _tuple[2])
             if added:
                 total_added += added
                 print("%-50s: %3d episodes since %s" %
-                      (name, added, utils.date_as_string(_tuple[1])))
+                      (name, added, utils.date_as_string(_tuple[2])))
         print
         print("There are a total of %d episodes to be updated." %
               (total_added))
@@ -187,6 +189,9 @@ def parse_command_line():
     add_parser.add_argument('--base-dir', action='store', default='Files',
                             help='The local direction in which to store '
                             'podcasts')
+    add_parser.add_argument('--max-update', action='store',
+                            default=sys.maxsize, help='The maximum number of '
+                            'episodes to download at one time.')
     add_parser.set_defaults(func=add_url)
 
     # podcast flag_fixup command

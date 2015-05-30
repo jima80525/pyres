@@ -77,11 +77,18 @@ def add_sciam():
     # see notes in run task above
     from pyres.main import main
     arg = ['add', 'http://rss.sciam.com/sciam/60secsciencepodcast',
-           '--start-date', '10/25/14']
-    main(arg)
+           '--start-date', '05/01/15', '--max-update', '3']
+           #'--start-date', '10/25/14', '--max-update', '3']
+    #arg = ['add', 'http://rss.sciam.com/sciam/60secsciencepodcast',
+           #'--start-date', '10/25/14']
+    sys.argv = ['pyres']
+    sys.argv.extend(arg)
+    main()
     arg = ['add', 'http://rss.sciam.com/sciam/60-second-psych',
            '--start-date', '09/20/14']
-    raise SystemExit(main(arg))
+    sys.argv = ['pyres']
+    sys.argv.extend(arg)
+    raise SystemExit()
 
 
 @task
@@ -91,7 +98,9 @@ def add_serial():
     from pyres.main import main
     arg = ['add', 'http://feeds.serialpodcast.org/serialpodcast',
            '--start-date', '01/01/14']
-    raise SystemExit(main(arg))
+    sys.argv = ['pyres']
+    sys.argv.extend(arg)
+    raise SystemExit(main())
 
 
 @task

@@ -21,7 +21,8 @@ class PodcastDatabase(object):
         # Create it if not
         try:
             self.connection.execute("CREATE TABLE podcasts (name text, "
-                                    "url text unique, needsfix bool)")
+                                    "url text unique, needsfix bool, "
+                                    "throttle int)")
         except sqlite3.OperationalError:
             pass
 
@@ -35,7 +36,7 @@ class PodcastDatabase(object):
             self.connection.rollback()
         self.connection.close()
 
-    def add_podcast(self, name, url):
+    def add_podcast(self, name, url, throttle):
         """Add a new podcast url to the database and set up a table to track
            episodes.
         """
@@ -51,8 +52,8 @@ class PodcastDatabase(object):
             if check1 is not None:
                 return  # already exists
 
-            cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)", (name,
-                                                                     url))
+            cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0, ?)",
+                           (name, url, throttle))
             cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
                            "file text, url text, size integer, state integer)"
                            % name)
@@ -166,11 +167,12 @@ class PodcastDatabase(object):
         tuples = list()
         with self.connection:
             cursor = self.connection.cursor()
-            urls = list(cursor.execute('SELECT url,name FROM podcasts '
-                                       'ORDER BY name'))
+            urls = list(cursor.execute('SELECT url,name,throttle FROM podcasts'
+                                       ' ORDER BY name'))
             for _tuple in urls:
                 url = _tuple[0]
                 name = _tuple[1]
+                throttle = _tuple[2]
                 cursor.execute("Select date from '%s' ORDER BY date DESC" %
                                name)
                 check1 = cursor.fetchone()
@@ -178,7 +180,7 @@ class PodcastDatabase(object):
                     latest_date = utils.string_to_date(check1[0])
                 else:
                     latest_date = time.gmtime()
-                tuples.append([url, latest_date])
+                tuples.append([url, throttle, latest_date])
         return tuples
 
     def get_podcast_names(self):
@@ -260,18 +262,20 @@ class PodcastDatabase(object):
             urls = list(cursor.execute('SELECT * FROM podcasts ORDER BY name'))
 
             for _tuple in urls:
-                name = _tuple[0]
-                url = _tuple[1]
-                flag = _tuple[2]
-                print flag, name, url
+                #name = _tuple[0]
+                #url = _tuple[1]
+                #flag = _tuple[2]
+                #print flag, name, url
+                print _tuple
             #print urls
             # code below here does the actual work
             #cursor.execute("DROP TABLE 'podcasts'")
             #self.connection.execute("CREATE TABLE podcasts (name text, "
-                                    #"url text unique, needsfix bool)")
+                                    #"url text unique, needsfix bool, "
+                                    #"throttle int)")
             #for _tuple in urls:
-                #cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0)",
-                               #(_tuple[0], _tuple[1]))
+                #cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0, ?)",
+                               #(_tuple[0], _tuple[1], sys.maxsize))
 
         #######################################################################
         # Print names of podcasts

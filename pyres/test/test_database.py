@@ -1,5 +1,6 @@
 """ Test test """
 import os
+import sys
 import stat
 import pytest
 import sqlite3
@@ -37,7 +38,7 @@ def filledfile(emptyfile):  # pylint: disable=W0621
                                     podcast=_FILLED_TABLE_NAME)
     with PodcastDatabase(emptyfile) as _database:
         assert _database
-        _database.add_podcast(_FILLED_TABLE_NAME, 'url')
+        _database.add_podcast(_FILLED_TABLE_NAME, 'url', sys.maxsize)
         # add a valid episode
         add_and_check(_database, _FILLED_TABLE_NAME, episode)
         episode.title = 'title2'
@@ -72,7 +73,7 @@ class TestOpen(object):
         assert self
         with PodcastDatabase(emptyfile) as _database:
             assert _database
-            _database.add_podcast('name', 'url')
+            _database.add_podcast('name', 'url', sys.maxsize)
 
     def test_read_only_file(self, emptyfile):  # pylint: disable=W0621
         """ Test opening a read-only database file """
@@ -81,7 +82,7 @@ class TestOpen(object):
         with pytest.raises(sqlite3.OperationalError):
             with PodcastDatabase(emptyfile) as _database:
                 assert _database
-                _database.add_podcast('name', 'url')
+                _database.add_podcast('name', 'url', sys.maxsize)
         os.chmod(emptyfile, stat.S_IWRITE)
 
     def test_empty_params(self):
@@ -100,8 +101,8 @@ class TestAddPodcast(object):
         """
         assert self
         with PodcastDatabase(emptyfile) as _database:
-            _database.add_podcast('name', 'url')
-            _database.add_podcast('name', 'url')
+            _database.add_podcast('name', 'url', sys.maxsize)
+            _database.add_podcast('name', 'url', sys.maxsize)
 
             # make sure the names is still there only once
             names = _database.get_podcast_names()
@@ -113,8 +114,10 @@ class TestAddPodcast(object):
         assert self
         with PodcastDatabase(emptyfile) as _database:
             assert _database
-            pytest.raises(AttributeError, _database.add_podcast, None, 'url')
-            pytest.raises(AttributeError, _database.add_podcast, 'name', None)
+            pytest.raises(AttributeError, _database.add_podcast, None, 'url',
+                          sys.maxsize)
+            pytest.raises(AttributeError, _database.add_podcast, 'name', None,
+                          sys.maxsize)
 
             names = _database.get_podcast_names()
             assert len(names) == 0
@@ -123,11 +126,30 @@ class TestAddPodcast(object):
         """ test setting fixup flag on podcasts """
         assert self
         with PodcastDatabase(emptyfile) as _database:
-            _database.add_podcast('name no fixup', 'url')
-            _database.add_podcast('name fixup', 'url fix')
+            _database.add_podcast('name no fixup', 'url', sys.maxsize)
+            _database.add_podcast('name fixup', 'url fix', sys.maxsize)
             _database.mark_podcast_for_fixups('name fixup')
             assert _database.does_podcast_need_fixup('name fixup')
             assert not _database.does_podcast_need_fixup('name no fixup')
+
+    def test_throttle_rate(self, emptyfile):  # pylint: disable=W0621
+        """ Make sure throttle rate is stored and returned correctly """
+        assert self
+        with PodcastDatabase(emptyfile) as _database:
+            _database.add_podcast('maxsize', 'urlmax', sys.maxsize)
+            _database.add_podcast('two', 'url2', 2)
+            _database.add_podcast('three', 'url3', 3)
+            names = _database.get_podcast_urls()
+            assert len(names) == 3
+            for _tuple in names:
+                name = _tuple[0]
+                throttle = _tuple[1]  # don't care about url which is [2]
+                if 'maxsize' in name:
+                    assert throttle == sys.maxsize
+                if 'two' in name:
+                    assert throttle == 2
+                if 'three' in name:
+                    assert throttle == 3
 
 
 class TestDeletePodcast(object):
@@ -148,7 +170,7 @@ class TestDeletePodcast(object):
         assert emptyfile
         table_name = "podcast_name"
         with PodcastDatabase(emptyfile) as _database:
-            _database.add_podcast(table_name, 'url')
+            _database.add_podcast(table_name, 'url', sys.maxsize)
             names = _database.get_podcast_names()
             assert len(names) == 1
             assert table_name in names
@@ -164,7 +186,7 @@ class TestDeletePodcast(object):
         assert emptyfile
         table_name = "podcast_name"
         with PodcastDatabase(emptyfile) as _database:
-            _database.add_podcast(table_name, 'url')
+            _database.add_podcast(table_name, 'url', sys.maxsize)
             episode1 = pyres.episode.Episode(base_path='path',
                                              date=time.localtime(),
                                              title='title1', url='link1',
@@ -197,7 +219,7 @@ class TestAddEpisode(object):
                           'table', 'episode')
 
             # episode as string with actual table
-            _database.add_podcast('table', 'url')
+            _database.add_podcast('table', 'url', sys.maxsize)
             pytest.raises(AttributeError, _database.add_new_episode_data,
                           'table', 'episode')
 
@@ -219,7 +241,7 @@ class TestAddEpisode(object):
         table_name = 'name'
         with PodcastDatabase(emptyfile) as _database:
             assert _database
-            _database.add_podcast(table_name, 'url')
+            _database.add_podcast(table_name, 'url', sys.maxsize)
             # add a valid episode
             add_and_check(_database, table_name, episode)
             # add it again - make sure there's only one
@@ -328,6 +350,6 @@ class TestGetUrls(object):
         assert self
         with PodcastDatabase(emptyfile) as _database:
             assert _database
-            _database.add_podcast(_FILLED_TABLE_NAME, 'url')
+            _database.add_podcast(_FILLED_TABLE_NAME, 'url', sys.maxsize)
             names = _database.get_podcast_urls()
             assert len(names) == 1

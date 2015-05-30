@@ -9,7 +9,7 @@ from pyres.episode import Episode
 import pyres.utils as utils
 
 
-def __process_feed(url, base_dir):
+def __process_feed(url, base_dir, start_date):
     """ Pull down the rss feed and add return episodes """
     feed = feedparser.parse(url)
 
@@ -30,12 +30,13 @@ def __process_feed(url, base_dir):
     # create the podcast directory as long as we're here
     utils.mkdir_p(podcast_path_name)
 
-    episodes = __process_items(feed, podcast_path_name, podcast_name)
+    episodes = __process_items(feed, podcast_path_name, podcast_name,
+                               start_date)
 
     return podcast_name, episodes
 
 
-def __process_items(feed, podcast_path_name, podcast_name):
+def __process_items(feed, podcast_path_name, podcast_name, start_date):
     """ Walk the list of items and return the list of episodes generated """
 
     episodes = list()
@@ -50,6 +51,9 @@ def __process_items(feed, podcast_path_name, podcast_name):
         # dates for ordering.
         raw_date = raw_date.rsplit(' ', 1)[0]
         date = time.strptime(raw_date, "%a, %d %b %Y %X")
+        # when comparing,  date None is always the least
+        if start_date > date:
+            continue
         try:
             # make sure as end up with only ascii in the titles.  Not great
             # for international users, but I"m currently only listening to
@@ -78,23 +82,25 @@ def __process_items(feed, podcast_path_name, podcast_name):
     return episodes
 
 
-def add_episodes_from_feed(database, url, base_dir, start_date=None):
+def add_episodes_from_feed(database, url, base_dir, throttle, start_date=None):
     """ Add episodes from url into database. """
-    name, episodes = __process_feed(url, base_dir)
+    name, episodes = __process_feed(url, base_dir, start_date)
     if not name or not episodes:
-        return None, None
+        return None, 0
 
     # adds table for podcast - likely to exist already
-    database.add_podcast(name, url)
+    database.add_podcast(name, url, throttle)
 
     episodes_added = 0
-    # for each podcast in this feed - add it to databse
-    for _episode in episodes:
-        # when comparing,  date None is always the least
-        if start_date < _episode.date:
-            logging.debug("Adding %s", utils.date_as_string(_episode.date))
-            if database.add_new_episode_data(name, _episode):
-                episodes_added += 1
+    # sort the episodes so we get the oldest ones first - this is needed for
+    # feeds for which we have a throttle value
+    episodes.sort(key=lambda x: x.date, reverse=False)
+
+    # get either all of the episodes or the throttle limit
+    for index in range(0, min(throttle, len(episodes))):
+        logging.debug("Adding %s", utils.date_as_string(episodes[index].date))
+        if database.add_new_episode_data(name, episodes[index]):
+            episodes_added += 1
     return name, episodes_added
 
 if __name__ == "__main__":
