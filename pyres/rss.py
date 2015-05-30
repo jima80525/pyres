@@ -53,7 +53,7 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
         raw_date = raw_date.rsplit(' ', 1)[0]
         date = time.strptime(raw_date, "%a, %d %b %Y %X")
         # when comparing,  date None is always the least
-        if start_date > date:
+        if start_date >= date:
             continue
         try:
             # make sure as end up with only ascii in the titles.  Not great
