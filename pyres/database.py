@@ -2,6 +2,7 @@
 Implements an abstraction to the database.
 """
 import sqlite3
+import sys
 import logging
 import time
 import pyres.episode as mod_episode
@@ -25,6 +26,22 @@ class PodcastDatabase(object):
                                     "throttle int)")
         except sqlite3.OperationalError:
             pass
+        # check to see if we're on the proper database version, if not, update
+        try:
+            cursor = self.connection.execute("PRAGMA user_version")
+            version = cursor.fetchone()[0]
+            current_version = 1
+            if version != current_version:
+                print "================================="
+                print "CONVERTING DATABASE TO NEW FORMAT"
+                print "================================="
+                self.convert_to_new_version(version, current_version)
+                cursor = self.connection.execute("PRAGMA user_version = %s" %
+                                                 current_version)
+
+        except sqlite3.OperationalError:
+            print "Failed reading database version or doing conversion"
+            raise
 
     def __enter__(self):
         return self
@@ -239,13 +256,31 @@ class PodcastDatabase(object):
                 cursor.execute("INSERT INTO '%s' VALUES (?, ?, ?, ?, ?, ?)" %
                                name, uniques[key])
 
+    def convert_to_new_version(self, old_version, current_version):
+        """ Do an automatic database conversion. """
+        if old_version != 0:
+            print "Unrecognized old version in database conversion", \
+                  old_version
+            sys.exit()
+        if current_version != 1:
+            print "Unrecognized current version in database conversion", \
+                  current_version
+            sys.exit()
+
+        with self.connection:
+            # now set it to maxsize for each podcast
+            cursor = self.connection.cursor()
+            urls = list(cursor.execute('SELECT * FROM podcasts ORDER BY name'))
+            cursor.execute("DROP TABLE 'podcasts'")
+            self.connection.execute("CREATE TABLE podcasts (name text, "
+                                    "url text unique, needsfix bool, "
+                                    "throttle int)")
+            for _tuple in urls:
+                cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0, ?)",
+                               (_tuple[0], _tuple[1], sys.maxsize))
+
     def convert_tables(self):
         """ Utility to change format of the podcast tables. """
-        # JHA this  returned names, too podcasts = self.jima_get_podcast_urls()
-        #for _tuple in sorted(podcasts):
-            #print "%-49s" % (_tuple[1])
-            #self.clean_table_of_dups(_tuple[1])
-
         #name = 'NPR Fresh Air'
         #name = 'How To Do Everything'
         #name = 'TED Radio Hour'
@@ -256,27 +291,12 @@ class PodcastDatabase(object):
         # use old version of string to date function
         #utils.string_to_date = lambda x: time.strptime(x, "%x:%X")
         #######################################################################
-        # Walk through podcasts table, adding field
         with self.connection:
             cursor = self.connection.cursor()
             urls = list(cursor.execute('SELECT * FROM podcasts ORDER BY name'))
 
             for _tuple in urls:
-                #name = _tuple[0]
-                #url = _tuple[1]
-                #flag = _tuple[2]
-                #print flag, name, url
                 print _tuple
-            #print urls
-            # code below here does the actual work
-            #cursor.execute("DROP TABLE 'podcasts'")
-            #self.connection.execute("CREATE TABLE podcasts (name text, "
-                                    #"url text unique, needsfix bool, "
-                                    #"throttle int)")
-            #for _tuple in urls:
-                #cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0, ?)",
-                               #(_tuple[0], _tuple[1], sys.maxsize))
-
         #######################################################################
         # Print names of podcasts
         #names = self.get_podcast_names()
