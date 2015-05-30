@@ -41,7 +41,8 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
 
     episodes = list()
     for feed_data in feed["items"]:
-        if 'published' not in feed_data or 'title' not in feed_data:
+        if 'published' not in feed_data or 'title' not in feed_data or \
+           'links' not in feed_data:
             continue  # only pull episodes that have dates
 
         raw_date = feed_data['published']
@@ -63,19 +64,20 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
             # titles with single quotes (') provide an extra challenge for
             # SQL entries.
             title = title.replace("'", "''")
+            # there can be multiple links to a single episode.  We only want
+            # the audio one.
             link = None
-            if 'links' in feed_data:
-                for k in feed_data["links"]:
-                    if 'type' in k and 'audio' in k['type']:
-                        link = k['href'] or link
-                if link:
-                    # the memory palace and a few other podcasts have
-                    # ocassionally published videos.  My player doesn't
-                    # support them, and the above code ends up without a
-                    # valid link for them.  Skip them without an error
-                    episodes.append(Episode(base_path=podcast_path_name,
-                                            date=date, title=title,
-                                            url=link, podcast=podcast_name))
+            for k in feed_data["links"]:
+                if 'type' in k and 'audio' in k['type']:
+                    link = k['href'] or link
+            if link:
+                # the memory palace and a few other podcasts have ocassionally
+                # published videos.  My player doesn't support them, and the
+                # above code ends up without a valid link for them.  Skip them
+                # without an error
+                episodes.append(Episode(base_path=podcast_path_name, date=date,
+                                        title=title, url=link,
+                                        podcast=podcast_name))
         except KeyError:
             logging.error("Failed processing feed title")
             raise
