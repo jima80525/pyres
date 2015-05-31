@@ -67,9 +67,9 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
             # there can be multiple links to a single episode.  We only want
             # the audio one.
             link = None
-            for k in feed_data["links"]:
-                if 'type' in k and 'audio' in k['type']:
-                    link = k['href'] or link
+            for kk in feed_data["links"]:
+                if 'type' in kk and 'audio' in kk['type']:
+                    link = kk['href'] or link
             if link:
                 # the memory palace and a few other podcasts have ocassionally
                 # published videos.  My player doesn't support them, and the

@@ -1,11 +1,29 @@
 """ Test the rss module """
 import sys
+import os
 import time
 import pytest
 from pyres.rss import add_episodes_from_feed
+from pyres.database import PodcastDatabase
 import pyres.utils
 from mock import patch
 from mock import Mock
+
+
+@pytest.fixture
+def emptyfile(request):
+    """ Provide a new, empty database file """
+    file_name = 'newdb.db'
+    _file = open(file_name, 'w')
+    _file.write('')
+    _file.close()
+
+    def fin():
+        """ remove the file after use """
+        os.remove(file_name)
+
+    request.addfinalizer(fin)
+    return file_name
 
 
 @pytest.fixture
@@ -397,3 +415,51 @@ class TestRss(object):
             database.add_podcast.assert_called_once_with(u'99 Invisible', "a",
                                                          sys.maxsize)
             assert database.add_new_episode_data.call_count == expected
+
+    @patch('pyres.rss.feedparser.parse')
+    def test_rss_start_date_with_db(self, feedparser,
+                                    largefeed,  # pylint: disable=W0621
+                                    emptyfile):  # pylint: disable=W0621
+        """  Test that throttle function works in conjunction with start date
+        """
+        assert self
+
+        # set up the mode for feedparser
+        feedparser.return_value = largefeed
+        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+
+        # convert the date string to the internally used date time
+        date = time.strptime('2015/4/19', "%Y/%m/%d")
+        #("2015/04/19", 4), ("2015/05/19", 4), ("2015/05/20", 3),
+
+        with PodcastDatabase(emptyfile) as _database:
+            assert _database
+
+            # call the routine
+            name, added = add_episodes_from_feed(_database, 'a', 'bdir', 2,
+                                                 date)
+
+            # check the feedparser mock
+            feedparser.assert_called_once_with('a')
+            assert name == u'99 Invisible'
+            assert added == 2
+
+            # test database - ask it how many episodes it has ready.  It should
+            # be two
+            to_download = _database.find_episodes_to_download(u'99 Invisible')
+            assert len(to_download) == 2
+
+            # now call add_episodes again - this should pull another two
+            # episodes but with a bug I was seeing, it only added one to the
+            # database - use the date of the second podcast to as the start
+            # date
+            name, added = add_episodes_from_feed(_database, 'a', 'bdir', 2,
+                                                 to_download[1].date)
+
+            # check the feedparser mock - only check number added this time
+            assert added == 2
+
+            # test database - ask it how many episodes it has ready.  It should
+            # be
+            to_download = _database.find_episodes_to_download(u'99 Invisible')
+            assert len(to_download) == 4
