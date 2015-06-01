@@ -28,12 +28,6 @@ def backup_database(args):
         logging.debug("No database file to back up")
 
 
-def display_database(args):
-    """ debug routine to display the database """
-    with PodcastDatabase(args.database) as _database:
-        _database.show_podcasts(args.names_only)
-
-
 def delete_podcast(args):
     """ Delete a podcast from the database """
     with PodcastDatabase(args.database) as _database:
@@ -140,11 +134,14 @@ def manage_audiobook(args):
     filemgr.copy_audiobook(args.dir)
 
 
-def convert_database(args):
-    """ debug routine to convert the database """
+def debug_database(args):
+    """ debug routine to examine the database """
     with PodcastDatabase(args.database) as _database:
         # fix up the table for one podcast
-        _database.convert_tables()
+        if args.all:
+            _database.show_all_episodes()
+        else:
+            _database.show_podcasts()
 
 
 def parse_command_line():
@@ -163,13 +160,6 @@ def parse_command_line():
 
     # add subcommands
     subparsers = parser.add_subparsers(help='commands', dest='command')
-
-    # Dump database command
-    dump_parser = subparsers.add_parser('dump', help='Show contents of '
-                                        'database', parents=[base])
-    dump_parser.add_argument('-n', '--names-only', action='store_true',
-                             help="only display podcast names")
-    dump_parser.set_defaults(func=display_database)
 
     # delete podcast command
     delete_parser = subparsers.add_parser('delete', help='remove podcast from '
@@ -242,10 +232,15 @@ def parse_command_line():
     audiobook_parser.set_defaults(func=manage_audiobook)
 
     # debug conversion of database on general command
-    convert_parser = subparsers.add_parser('convert', help="debug utility to "
-                                           "convert database when mistakes "
-                                           "were made", parents=[base])
-    convert_parser.set_defaults(func=convert_database)
+    database_parser = subparsers.add_parser('database', help="debug utility "
+                                            "to examine database.",
+                                            parents=[base])
+    database_parser.add_argument('-a', '--all', action='store_true',
+                                 help="show all episode data")
+    #databse_parser.add_argument('--dir', action='store', required=True,
+                                  #help='The directory from which the '
+                                  #'audiobook will be copied.')
+    database_parser.set_defaults(func=debug_database)
 
     args = parser.parse_args(sys.argv[1:])
     return args

@@ -104,6 +104,3 @@ def add_episodes_from_feed(database, url, base_dir, throttle, start_date=None):
         if database.add_new_episode_data(name, episodes[index]):
             episodes_added += 1
     return name, episodes_added
-
-if __name__ == "__main__":
-    print "NOT IMPLEMENTED"

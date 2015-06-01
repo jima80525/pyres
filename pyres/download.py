@@ -187,6 +187,3 @@ class PodcastDownloader(object):
     def return_successful_files(self):
         """ get the list of files that downloaded successfully """
         return self.successful_files
-
-if __name__ == "__main__":
-    pass

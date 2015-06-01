@@ -102,5 +102,3 @@ class FileManager(object):
             logging.debug("copied %s to %s", episode.file_name, newfile)
             print("%2d/%d: copied %s to %s" % (counter, total,
                                                episode.file_name, newfile))
-if __name__ == "__main__":
-    FSYS = FileManager()

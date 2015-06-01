@@ -7,6 +7,7 @@ import sqlite3
 import time
 from pyres.database import PodcastDatabase
 import pyres.episode
+from mock import patch
 
 # this is coupled into at least one test
 _FILLED_TABLE_NAME = 'filled_table'
@@ -32,8 +33,10 @@ def emptyfile(request):
 def filledfile(emptyfile):  # pylint: disable=W0621
 
     """ Tests for add episode data function """
+    # get a fixed date
+    date = time.strptime('2015/4/19', "%Y/%m/%d")
     episode = pyres.episode.Episode(base_path='path',
-                                    date=time.localtime(),
+                                    date=date,
                                     title='title', url='link',
                                     podcast=_FILLED_TABLE_NAME)
     with PodcastDatabase(emptyfile) as _database:
@@ -42,6 +45,7 @@ def filledfile(emptyfile):  # pylint: disable=W0621
         # add a valid episode
         add_and_check(_database, _FILLED_TABLE_NAME, episode)
         episode.title = 'title2'
+        episode.date = time.strptime('2015/4/20', "%Y/%m/%d")
         add_and_check(_database, _FILLED_TABLE_NAME, episode, 2)
 
     return emptyfile
@@ -80,17 +84,53 @@ class TestOpen(object):
         assert self
         os.chmod(emptyfile, stat.S_IREAD)
         with pytest.raises(sqlite3.OperationalError):
-            with PodcastDatabase(emptyfile) as _database:
-                assert _database
-                _database.add_podcast('name', 'url', sys.maxsize)
+            PodcastDatabase(emptyfile)
         os.chmod(emptyfile, stat.S_IWRITE)
 
     def test_empty_params(self):
         """ Testing no parameters to open"""
         assert self
         with pytest.raises(AttributeError):
-            with PodcastDatabase(None):
-                pass
+            PodcastDatabase(None)
+
+    def test_rollback(self, emptyfile):   # pylint: disable=W0621
+        """ Test that an exception raised inside a 'with' clause causes a
+        rollback of the database. """
+        assert self
+        with pytest.raises(Exception):
+            with PodcastDatabase(emptyfile) as _database:
+                _database.add_podcast('name', 'url', sys.maxsize)
+
+                # make sure the names is still there only once
+                names = _database.get_podcast_names()
+                assert len(names) == 1
+                assert 'name' in names
+                raise Exception
+
+        # end the with block and re-open the database
+        with PodcastDatabase(emptyfile) as _database:
+            # make sure the names is still there only once
+            names = _database.get_podcast_names()
+            print names
+            assert len(names) == 0
+
+    def test_commit(self, emptyfile):   # pylint: disable=W0621
+        """ Test that changes are committed to the database """
+        assert self
+        with PodcastDatabase(emptyfile) as _database:
+            _database.add_podcast('name', 'url', sys.maxsize)
+
+            # make sure the names is still there only once
+            names = _database.get_podcast_names()
+            assert len(names) == 1
+            assert 'name' in names
+
+        # end the with block and re-open the database
+        with PodcastDatabase(emptyfile) as _database:
+            # make sure the names is still there only once
+            names = _database.get_podcast_names()
+            assert len(names) == 1
+            assert 'name' in names
 
 
 class TestAddPodcast(object):
@@ -141,15 +181,24 @@ class TestAddPodcast(object):
             _database.add_podcast('three', 'url3', 3)
             names = _database.get_podcast_urls()
             assert len(names) == 3
+            added1 = False
+            added2 = False
+            added3 = False
             for _tuple in names:
-                name = _tuple[0]
-                throttle = _tuple[1]  # don't care about url which is [2]
-                if 'maxsize' in name:
+                url = _tuple[0]
+                throttle = _tuple[1]  # don't care about startdate which is [2]
+                if 'urlmax' in url:
                     assert throttle == sys.maxsize
-                if 'two' in name:
+                    added1 = True
+                if 'url2' in url:
                     assert throttle == 2
-                if 'three' in name:
+                    added2 = True
+                if 'url3' in url:
                     assert throttle == 3
+                    added3 = True
+            assert added1
+            assert added2
+            assert added3
 
 
 class TestDeletePodcast(object):
@@ -338,7 +387,7 @@ class TestGetUrls(object):
             assert len(names) == 0
 
     def test_on_full_file(self, filledfile):  # pylint: disable=W0621
-        """  tests function against an empty database """
+        """  tests function against an full database """
         assert self
         with PodcastDatabase(filledfile) as _database:
             assert _database
@@ -353,3 +402,52 @@ class TestGetUrls(object):
             _database.add_podcast(_FILLED_TABLE_NAME, 'url', sys.maxsize)
             names = _database.get_podcast_urls()
             assert len(names) == 1
+
+
+class TestShowMethods(object):
+    """ test the debug show methods
+        JHA 5/31/15 - not thrilled with these as they are very white-boxy.
+        THey know too much about the output format, which might change without
+        dramatically altering the functionality.  Might change to simply count
+        number of lines returns?  Or that something was returned?  Might be
+        thinking about this too much. """
+    def test_show_podcasts(self, capsys, filledfile):  # pylint: disable=W0621
+        """  tests the show_podcasts function """
+        assert self
+        with PodcastDatabase(filledfile) as _database:
+            assert _database
+            _database.show_podcasts()
+            out, _ = capsys.readouterr()
+            assert out == "('filled_table', 'url', 0, 2147483647)\n"
+
+    def test_show_episodes(self, capsys, filledfile):  # pylint: disable=W0621
+        """  tests the show_all_episodes function """
+        assert self
+        with PodcastDatabase(filledfile) as _database:
+            assert _database
+            _database.show_all_episodes()
+            out, _ = capsys.readouterr()
+            assert out == "filled_table (False)\n" \
+                "2015/04/19:00:00:00 title 0 URL OK\n"\
+                "2015/04/20:00:00:00 title2 0 URL OK\n\n"
+
+
+class TestConvertVersion(object):
+    """ test the method that does the auto-database conversion """
+    def test_convert_bad_old(self, filledfile):  # pylint: disable=W0621
+        """  send an invalid 'old' version to the function """
+        assert self
+        with PodcastDatabase(filledfile) as _database:
+            assert _database
+            with patch('pyres.database.sys.exit') as exit_mock:
+                _database.convert_to_new_version(2, 1)
+                assert exit_mock.called
+
+    def test_convert_bad_new(self, filledfile):  # pylint: disable=W0621
+        """  send an invalid 'new' version to the function """
+        assert self
+        with PodcastDatabase(filledfile) as _database:
+            assert _database
+            with patch('pyres.database.sys.exit') as exit_mock:
+                _database.convert_to_new_version(0, 2)
+                assert exit_mock.called
