@@ -93,26 +93,35 @@ class TestOpen(object):
         with pytest.raises(AttributeError):
             PodcastDatabase(None)
 
-    def test_rollback(self, emptyfile):   # pylint: disable=W0621
+    def test_rollback(self, filledfile):   # pylint: disable=W0621
         """ Test that an exception raised inside a 'with' clause causes a
         rollback of the database. """
         assert self
+        # first add podcast with one episode
+        with PodcastDatabase(filledfile) as _database:
+            names = _database.get_podcast_names()
+            assert len(names) == 1
+            assert _FILLED_TABLE_NAME in names
+            episodes = _database.find_episodes_to_download(
+                _FILLED_TABLE_NAME)
+            assert len(episodes) == 2
+        # now add one but throw exception in the with block
         with pytest.raises(Exception):
-            with PodcastDatabase(emptyfile) as _database:
-                _database.add_podcast('name', 'url', sys.maxsize)
-
-                # make sure the names is still there only once
-                names = _database.get_podcast_names()
-                assert len(names) == 1
-                assert 'name' in names
+            with PodcastDatabase(filledfile) as _database:
+                # make one of the episodes as downloaded
+                _database.mark_episode_downloaded(episodes[0])
+                new_list = _database.find_episodes_to_download(
+                    _FILLED_TABLE_NAME)
+                # confirm that we now think there's only 1 left to download
+                assert len(new_list) == 1
+                # raise the exception to roll us back
                 raise Exception
 
         # end the with block and re-open the database
-        with PodcastDatabase(emptyfile) as _database:
-            # make sure the names is still there only once
-            names = _database.get_podcast_names()
-            print names
-            assert len(names) == 0
+        with PodcastDatabase(filledfile) as _database:
+            # should still have 2 to download
+            new_list = _database.find_episodes_to_download(_FILLED_TABLE_NAME)
+            assert len(new_list) == 2
 
     def test_commit(self, emptyfile):   # pylint: disable=W0621
         """ Test that changes are committed to the database """
