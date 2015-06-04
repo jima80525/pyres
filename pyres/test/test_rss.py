@@ -5,7 +5,6 @@ import time
 import pytest
 from pyres.rss import add_episodes_from_feed
 from pyres.database import PodcastDatabase
-import pyres.utils
 from mock import patch
 from mock import Mock
 
@@ -172,12 +171,13 @@ class TestRss(object):
         assert not name
         assert not added
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_bad_episode_date(self, feedparser,
+    def test_rss_bad_episode_date(self, feedparser, mkdir,
                                   basicfeed):  # pylint: disable=W0621
         """  test result if an episode has no date. """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
 
         # set up the mode for feedparser
         basicfeed['items'][0]['published'] = "not a valid date"
@@ -193,12 +193,13 @@ class TestRss(object):
                       'bdir', sys.maxsize,
                       None)
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_no_episode_date(self, feedparser,
+    def test_rss_no_episode_date(self, feedparser, mkdir,
                                  basicfeed):  # pylint: disable=W0621
         """  test result if an episode has no date. """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
 
         # set up the mode for feedparser
         del basicfeed['items'][0]['published']
@@ -216,12 +217,13 @@ class TestRss(object):
         assert not name
         assert not added
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_no_episode_title(self, feedparser,
+    def test_rss_no_episode_title(self, feedparser, mkdir,
                                   basicfeed):  # pylint: disable=W0621
         """  test result if an episode has no title. """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
 
         # set up the mode for feedparser
         del basicfeed['items'][0]['title']
@@ -239,12 +241,13 @@ class TestRss(object):
         assert not name
         assert not added
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_no_episode_links(self, feedparser,
+    def test_rss_no_episode_links(self, feedparser, mkdir,
                                   basicfeed):  # pylint: disable=W0621
         """  test result if an episode has no title. """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
 
         # set up the mode for feedparser
         del basicfeed['items'][0]['links']
@@ -262,12 +265,13 @@ class TestRss(object):
         assert not name
         assert not added
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_episode_links_no_audio(self, feedparser,
+    def test_rss_episode_links_no_audio(self, feedparser, mkdir,
                                         basicfeed):  # pylint: disable=W0621
         """  test result if an episode has no link with audio. """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
 
         # set up the mode for feedparser
         basicfeed['items'][0]['links'][0]['type'] = u'video'
@@ -286,12 +290,13 @@ class TestRss(object):
         assert not name
         assert not added
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_episode_links_no_hrd(self, feedparser,
+    def test_rss_episode_links_no_hrd(self, feedparser, mkdir,
                                       basicfeed):  # pylint: disable=W0621
         """  test result if an episode has audio link with no href tag. """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
 
         # set up the mode for feedparser
         del basicfeed['items'][0]['links'][0]['href']
@@ -305,12 +310,13 @@ class TestRss(object):
         pytest.raises(KeyError, add_episodes_from_feed, database, 'a', 'bdir',
                       sys.maxsize, None)
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_get_full_url(self, feedparser,
+    def test_rss_get_full_url(self, feedparser, mkdir,
                               basicfeed):  # pylint: disable=W0621
         """  test that the right info is pulled from feed """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
         # set up the mode for feedparser
         feedparser.return_value = basicfeed
         # set up a mock for the database so we don't need to actually write one
@@ -332,12 +338,13 @@ class TestRss(object):
                                                      sys.maxsize)
         assert database.add_new_episode_data.call_count == 1
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_no_database(self, feedparser,
+    def test_rss_no_database(self, feedparser, mkdir,
                              basicfeed):  # pylint: disable=W0621
         """  attempt to add to a nil database """
         assert self
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
+        assert mkdir
         # set up the mode for feedparser
         feedparser.return_value = basicfeed
 
@@ -346,21 +353,22 @@ class TestRss(object):
         pytest.raises(AttributeError, add_episodes_from_feed, None, 'a',
                       'bdir', sys.maxsize, None)
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
     @pytest.mark.parametrize("throttle, expected", [
         (sys.maxsize, 4), (0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 4),
-    ])
-    def test_rss_throttle(self, feedparser, throttle, expected,
+    ])  # pylint: disable=too-many-arguments
+    def test_rss_throttle(self, feedparser, mkdir, throttle, expected,
                           largefeed):  # pylint: disable=W0621
         """  Test that throttle function works """
         assert self
+        assert mkdir
 
         # set up the mode for feedparser
         feedparser.return_value = largefeed
         # set up a mock for the database so we don't need to actually write one
         database = Mock()
         database.add_new_episode_data.return_value = True
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
 
         # call the routine
         name, added = add_episodes_from_feed(database, 'a', 'bdir', throttle,
@@ -377,24 +385,25 @@ class TestRss(object):
                                                      throttle)
         assert database.add_new_episode_data.call_count == expected
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
     @pytest.mark.parametrize("start_date, expected", [
         # the largefeed fixture has four episodes, one on each day starting
         # on 5/19/2015 through 5/22/2015
         ("2015/04/19", 4), ("2015/05/19", 4), ("2015/05/20", 3),
         ("2015/05/21", 2), ("2015/05/22", 1), ("2015/05/23", 0),
-    ])
-    def test_rss_start_date(self, feedparser, start_date, expected,
+    ])  # pylint: disable=too-many-arguments
+    def test_rss_start_date(self, feedparser, mkdir, start_date, expected,
                             largefeed):  # pylint: disable=W0621
         """  Test that throttle function works """
         assert self
+        assert mkdir
 
         # set up the mode for feedparser
         feedparser.return_value = largefeed
         # set up a mock for the database so we don't need to actually write one
         database = Mock()
         database.add_new_episode_data.return_value = True
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
 
         # convert the date string to the internally used date time
         date = time.strptime(start_date, "%Y/%m/%d")
@@ -416,17 +425,18 @@ class TestRss(object):
                                                          sys.maxsize)
             assert database.add_new_episode_data.call_count == expected
 
+    @patch('pyres.rss.utils.mkdir_p')
     @patch('pyres.rss.feedparser.parse')
-    def test_rss_start_date_with_db(self, feedparser,
+    def test_rss_start_date_with_db(self, feedparser, mkdir,
                                     largefeed,  # pylint: disable=W0621
                                     emptyfile):  # pylint: disable=W0621
         """  Test that throttle function works in conjunction with start date
         """
         assert self
+        assert mkdir
 
         # set up the mode for feedparser
         feedparser.return_value = largefeed
-        pyres.utils.mkdir_p = Mock()  # set up a mock for utils.mkdir_p
 
         # convert the date string to the internally used date time
         date = time.strptime('2015/4/19', "%Y/%m/%d")
