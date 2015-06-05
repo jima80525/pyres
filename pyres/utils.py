@@ -21,8 +21,9 @@ def mkdir_p(_path):
             raise
 
 
-def clean_name(value, deletechars=r"\/:*%?\"<>|'"):
+def clean_name(value):
     """ remove bad character from possible file name component """
+    deletechars = r"\/:*%?\"<>|'"
     for letter in deletechars:
         value = value.replace(letter, '')
     return value
@@ -51,6 +52,9 @@ def fixup_mp3_file(filename):
 
 def acroname(name):
     """ Returns a three letter acronym given a podcast title """
+    if not len(name):
+        return name  # return empty string right back
+
     word_list = name.split()
 
     # first, trim npr label from some podcasts
@@ -60,9 +64,7 @@ def acroname(name):
     if name.startswith("Scientific American Podcast"):
         word_list = word_list[3:]
 
-    if len(word_list) == 0:
-        result = ""
-    elif len(word_list) == 1:
+    if len(word_list) == 1:
         result = word_list[0][:3]
     elif len(word_list) == 2:
         result = word_list[0][:2] + word_list[1][0]
@@ -70,7 +72,3 @@ def acroname(name):
         fullacro = ''.join(e[0] for e in word_list)
         result = fullacro[:3]
     return result
-
-
-if __name__ == "__main__":
-    print "Not Implemented"
