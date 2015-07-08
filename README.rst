@@ -71,17 +71,8 @@ Please report any bugs or requests that you have using the GitHub issue tracker!
 
 Development
 ===========
-Features to be added:
-* tracking and removing items from MP3 player
-* managing a queue of audiobooks (filling player when possible)
-* tests need to be expanded to cover more of the top level functions
-* combine process and update commands
-* Test filemanager path conversions on windows
-* way to see how long each episode is - and how much time is being downloaded -
-  maybe how much time in each state
-* GUI
+See the TODO file for ongoing development list.
 
 Authors
 =======
-
 * Jim Anderson

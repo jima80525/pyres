@@ -1,0 +1,24 @@
+Todo list for Pyres
+
+*  Get unit tests finished
+*
+*  explore how to refactor top level to make unit tests less obnoxious
+*
+*  Convert database access to peewee
+*  https://peewee.readthedocs.org/en/latest/peewee/installation.html
+*
+*  Check out command line packages
+*  http://docs.python-guide.org/en/latest/scenarios/cli/
+*
+*  check out cookie cutter
+*  https://github.com/audreyr/cookiecutter
+*
+*  Check out enaml
+*  https://github.com/nucleic/enaml
+*
+*  check out requests lib for http work
+*  http://docs.python-requests.org/en/latest/index.html
+*
+*  explore virtualenv, wrapper and autoenv
+*
+*  Update docs - look into sphinx and how it works
