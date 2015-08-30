@@ -51,7 +51,15 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
         # likely to remain with the same timezone and we're only using
         # dates for ordering.
         raw_date = raw_date.rsplit(' ', 1)[0]
-        date = time.strptime(raw_date, "%a, %d %b %Y %X")
+        try:
+            date = time.strptime(raw_date, "%a, %d %b %Y %X")
+        except ValueError:
+            # having problems with radiolab, which changed its date format to
+            # look like:
+            #    '2015-08-23T17:38:36-04:00'
+            # for now I'm just cutting off more timezone info
+            raw_date = raw_date.rsplit('-', 1)[0]
+            date = time.strptime(raw_date, "%Y-%m-%dT%H:%M:%S")
         # when comparing,  date None is always the least
         if start_date >= date:
             continue
