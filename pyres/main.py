@@ -93,43 +93,48 @@ def process_rss_feeds(args):
             if len(tmp_list) != 0:
                 print("%-50s: %3d episodes to download" % (podcast,
                                                            len(tmp_list)))
-        downloader = PodcastDownloader(episodes)
-        downloader.download_url_list()
-        for episode in downloader.return_successful_files():
-            if _database.does_podcast_need_fixup(episode.podcast):
-                print "Fixing ", episode.file_name
-                utils.fixup_mp3_file(episode.file_name)
+        if episodes:
+            downloader = PodcastDownloader(episodes)
+            downloader.download_url_list()
+            for episode in downloader.return_successful_files():
+                if _database.does_podcast_need_fixup(episode.podcast):
+                    print "Fixing ", episode.file_name
+                    utils.fixup_mp3_file(episode.file_name)
 
-            _database.mark_episode_downloaded(episode)
-            print episode.file_name
+                _database.mark_episode_downloaded(episode)
+                print episode.file_name
 
 
 def download_to_player(args):
     """ copy episodes to mp3 player """
     with PodcastDatabase(args.database) as _database:
-        filemgr = FileManager(args.mp3_player)
         podcasts = _database.get_podcast_names()
 
         episodes = list()
         for podcast in podcasts:
             new_episodes = _database.find_episodes_to_copy(podcast)
+            print podcast, new_episodes
             if len(new_episodes) != 0:
                 print "%-50s: %3d" % (podcast, len(new_episodes))
                 episodes.extend(new_episodes)
 
-        print
-        print "Copying %d episodes to player" % len(episodes)
+        if episodes:
+            print
+            print "Copying %d episodes to player" % len(episodes)
 
-        # copy all the files in one list so they come out in date
-        # order
-        filemgr.copy_episodes_to_player(episodes)
-        for episode in episodes:
-            _database.mark_episode_on_mp3_player(episode)
+            # copy all the files in one list so they come out in date
+            # order
+            filemgr = FileManager(args.mp3_player)
+            filemgr.copy_episodes_to_player(episodes)
+            for episode in episodes:
+                _database.mark_episode_on_mp3_player(episode)
+        else:
+            print
+            print "No episodes to copy"
 
 
 def manage_audiobook(args):
     """ Copies audiobook to mp3 player """
-    print args
     filemgr = FileManager(args.mp3_player)
     filemgr.copy_audiobook(args.dir)
 
@@ -237,9 +242,6 @@ def parse_command_line():
                                             parents=[base])
     database_parser.add_argument('-a', '--all', action='store_true',
                                  help="show all episode data")
-    #databse_parser.add_argument('--dir', action='store', required=True,
-                                  #help='The directory from which the '
-                                  #'audiobook will be copied.')
     database_parser.set_defaults(func=debug_database)
 
     args = parser.parse_args(sys.argv[1:])
@@ -260,7 +262,3 @@ def main():
         logging.debug("verbose set")
 
     args.func(args)
-
-
-if __name__ == "__main__":
-    main()

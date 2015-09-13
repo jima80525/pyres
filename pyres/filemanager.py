@@ -50,8 +50,7 @@ class FileManager(object):
     def __init__(self, base_dir):
         # set default value for mp3 player
         #base_dir = base_dir or "TestFiles"
-        base_dir = base_dir or "/media/jima/3C33-7AC4/"
-        print base_dir
+        base_dir = base_dir or "/media/jima/EC57-25A1/"
         self.base_dir = base_dir
         utils.mkdir_p(self.base_dir)
 
