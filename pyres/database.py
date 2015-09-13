@@ -142,8 +142,14 @@ class PodcastDatabase(object):
 
     def mark_podcast_for_fixups(self, name):
         """ update flag on podcast to indicate it needs fixup """
-        self.cursor.execute("UPDATE 'podcasts' SET needsfix=1 where name = "
-                            "'%s'" % (name))
+        self.cursor.execute("SELECT name from  'podcasts' where name = '%s'"
+                            % (name))
+        check1 = self.cursor.fetchone()
+        if check1:
+            self.cursor.execute("UPDATE 'podcasts' SET needsfix=1 where name "
+                                "= '%s'" % (name))
+        else:
+            raise sqlite3.OperationalError
 
     def does_podcast_need_fixup(self, name):
         """ Checks database to see if this podcast needs fixups. """

@@ -3,6 +3,7 @@ import pytest
 import sys
 import os
 import shutil
+import sqlite3
 import time
 import pyres.main
 from mock import patch
@@ -678,3 +679,108 @@ class TestProcess(object):
                         to_download.assert_called_once_with('podcast1')
                         downloader.assert_called_once_with()
                         assert mark_eps.call_count == 2
+
+    @patch('pyres.main.PodcastDownloader.return_successful_files')
+    @patch('pyres.main.PodcastDatabase.does_podcast_need_fixup')
+    def test_fixup(self, needs_fixup, downloader,
+                   emptyfile, newplayer):  # pylint: disable=W0621
+        """ one podcast with fixups """
+        assert self
+
+        class FakeEpisode(object):  # pylint: disable=too-few-public-methods
+            """ Simple mock for episodes """
+            def __init__(self, file_name, podcast):
+                self.file_name = file_name
+                self.podcast = podcast
+
+        with patch('pyres.main.PodcastDatabase.find_episodes_to_download') \
+                as to_download:
+            with patch('pyres.main.PodcastDatabase.get_podcast_names') as \
+                    get_names:
+                with patch('pyres.main.PodcastDatabase.'
+                           'mark_episode_downloaded') as mark_eps:
+                    with patch('pyres.main.PodcastDownloader.'
+                               'download_url_list') as download_list:
+                        with patch('pyres.main.utils.fixup_mp3_file') as fixup:
+                            assert download_list
+                            # set up the patch to return an empty list
+                            get_names.return_value = ['podcast1', ]
+                            episode_list = [FakeEpisode('ep1', 'podcast1'),
+                                            FakeEpisode('ep2', 'podcast1'), ]
+                            to_download.return_value = episode_list
+                            downloader.return_value = episode_list
+                            needs_fixup.return_value = True
+
+                            # set up the arguments
+                            args = argparse.Namespace()
+                            args.database = emptyfile
+                            args.mp3_player = newplayer
+
+                            # call the routine
+                            pyres.main.process_rss_feeds(args)
+
+                            # test that we called the right things
+                            get_names.assert_called_once_with()
+                            to_download.assert_called_once_with('podcast1')
+                            downloader.assert_called_once_with()
+                            assert mark_eps.call_count == 2
+                            assert fixup.called_once_with('ep1')
+
+
+class TestMainDelete(object):
+    """ Test the delete_podcast function"""
+    def test_no_podcasts(self, emptyfile):  # pylint: disable=W0621
+        """ call delete with no podcasts in the database"""
+        assert self
+        # set up the arguments
+        args = argparse.Namespace()
+        args.name = "not_there"
+        args.database = emptyfile
+
+        # call the routine
+        pytest.raises(sqlite3.OperationalError, pyres.main.delete_podcast,
+                      args)
+
+    def test_call(self, emptyfile):  # pylint: disable=W0621
+        """ call delete with patch to catch delete call"""
+        assert self
+        with patch('pyres.main.PodcastDatabase.delete_podcast') as delete:
+            # set up the arguments
+            args = argparse.Namespace()
+            args.name = "podcast_name"
+            args.database = emptyfile
+
+            # call the routine
+            pyres.main.delete_podcast(args)
+
+            assert delete.called_once_with(args.name)
+
+
+class TestFixup(object):
+    """ Test the fixup function"""
+    def test_no_podcasts(self, emptyfile):  # pylint: disable=W0621
+        """ call fixup with no podcasts in the database"""
+        assert self
+        # set up the arguments
+        args = argparse.Namespace()
+        args.name = "not_there"
+        args.database = emptyfile
+
+        # call the routine
+        pytest.raises(sqlite3.OperationalError,
+                      pyres.main.flag_fixup_for_podcast, args)
+
+    def test_call(self, emptyfile):  # pylint: disable=W0621
+        """ call fixup with patch to catch delete call"""
+        assert self
+        with patch('pyres.main.PodcastDatabase.mark_podcast_for_fixups') as \
+                fixup:
+            # set up the arguments
+            args = argparse.Namespace()
+            args.name = "podcast_name"
+            args.database = emptyfile
+
+            # call the routine
+            pyres.main.flag_fixup_for_podcast(args)
+
+            assert fixup.called_once_with(args.name)
