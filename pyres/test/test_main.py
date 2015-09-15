@@ -784,3 +784,110 @@ class TestFixup(object):
             pyres.main.flag_fixup_for_podcast(args)
 
             assert fixup.called_once_with(args.name)
+
+
+class TestAddUrl(object):
+    """ Test the add_url function"""
+    def test_no_episodes(self, emptyfile):  # pylint: disable=W0621
+        """ call add url with no episodes found """
+        assert self
+        # set up the arguments
+        args = argparse.Namespace()
+        args.database = emptyfile
+        args.url = "url"
+        args.base_dir = "base_dir"
+        args.max_update = "1"
+        args.start_date = None
+
+        # call the routine
+        pyres.main.add_url(args)
+
+    def test_episode_with_start_date(self, emptyfile):  # pylint: disable=W0621
+        """ call add_url with a start date """
+        assert self
+        with patch('pyres.main.pyres.rss.add_episodes_from_feed') as add_ep:
+            # set up the arguments
+            args = argparse.Namespace()
+            args.database = emptyfile
+            args.url = "url"
+            args.base_dir = "base_dir"
+            args.max_update = "1"
+            args.start_date = time.strptime("04/17/15", "%x")
+
+            add_ep.return_value = "name", 1
+
+            # call the routine
+            pyres.main.add_url(args)
+
+            assert add_ep.call_count == 1
+
+    def test_episode_no_start_date(self, emptyfile):  # pylint: disable=W0621
+        """ call add_url without a start date """
+        assert self
+        with patch('pyres.main.pyres.rss.add_episodes_from_feed') as add_ep:
+            # set up the arguments
+            args = argparse.Namespace()
+            args.database = emptyfile
+            args.url = "url"
+            args.base_dir = "base_dir"
+            args.max_update = "1"
+            args.start_date = None
+
+            add_ep.return_value = "name", 1
+
+            # call the routine
+            pyres.main.add_url(args)
+
+            assert add_ep.call_count == 1
+
+
+class TestUpdate(object):
+    """ Test the update_download_list function"""
+    """
+    with PodcastDatabase(args.database) as _database:
+        podcasts = _database.get_podcast_urls()
+        total_added = 0
+        for _tuple in podcasts:
+            name, added = pyres.rss.add_episodes_from_feed(_database,
+                                                           _tuple[0],
+                                                           args.base_dir,
+                                                           int(_tuple[1]),
+                                                           _tuple[2])
+            if added:
+                total_added += added
+                print("%-50s: %3d episodes since %s" %
+                      (name, added, utils.date_as_string(_tuple[2])))
+        print
+        print("There are a total of %d episodes to be updated." %
+              (total_added))
+
+    """
+    def test_no_podcasts(self, emptyfile):  # pylint: disable=W0621
+        """ call update with no podcasts found """
+        assert self
+        # set up the arguments
+        args = argparse.Namespace()
+        args.database = emptyfile
+        args.base_dir = "base_dir"
+
+        # call the routine
+        pyres.main.update_download_list(args)
+
+    def test_update_with_one(self, emptyfile):  # pylint: disable=W0621
+        """ call add_url with a an episode to add """
+        assert self
+        with patch('pyres.main.PodcastDatabase.get_podcast_urls') as get_pod:
+            with patch('pyres.main.pyres.rss.add_episodes_from_feed') as add_e:
+                # set up the arguments
+                args = argparse.Namespace()
+                args.database = emptyfile
+                args.base_dir = "base_dir"
+
+                add_e.return_value = "name", 1
+                get_pod.return_value = ((0, 1,
+                                         time.strptime("04/17/15", "%x")), )
+
+                # call the routine
+                pyres.main.update_download_list(args)
+
+                assert add_e.call_count == 1
