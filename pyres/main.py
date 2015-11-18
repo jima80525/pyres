@@ -78,6 +78,9 @@ def update_download_list(args):
         print("There are a total of %d episodes to be updated." %
               (total_added))
 
+    # go ahead and get those podcasts while we're here.
+    process_rss_feeds(args)
+
 
 def process_rss_feeds(args):
     """ download podcasts from web to computer - poorly named """
