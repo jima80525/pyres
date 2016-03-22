@@ -116,7 +116,6 @@ def download_to_player(args):
         episodes = list()
         for podcast in podcasts:
             new_episodes = _database.find_episodes_to_copy(podcast)
-            print podcast, new_episodes
             if len(new_episodes) != 0:
                 print "%-50s: %3d" % (podcast, len(new_episodes))
                 episodes.extend(new_episodes)
