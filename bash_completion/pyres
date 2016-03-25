@@ -1,0 +1,75 @@
+_pyres()
+{
+   IFS=$'\n'
+   local cur prev opts base_opts commands names names_opts
+   COMPREPLY=()
+   cur="${COMP_WORDS[COMP_CWORD]}"
+   prev="${COMP_WORDS[COMP_CWORD-1]}"
+   cmd="${COMP_WORDS[1]}"
+   base_opts=$'-v\n--verbose\n-b\n--no-backup\n-d\n--database'
+   commands=$'delete\nadd\nflag_fixup\nupdate\nprocess\ndownload\naudiobook\ndatabase\nnames'
+   names=$(pyres names)
+   names_opts=$'${base_opts}\n${names}'
+
+   case "${prev}" in
+      '-d' | '--database')
+         # match only .db files
+         COMPREPLY=( $(compgen -X !*.db -f ${cur}) )
+         return 0
+         ;;
+      '--base-dir' | '--mp3-player' | '--dir')
+         # match only directories
+         COMPREPLY=( $(compgen -o nospace -S / -d -- ${cur}) )
+         compopt -o nospace
+         return 0
+         ;;
+      pyres)
+         opts=$'${base_opts}\n${commands}'
+         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+         return 0
+         ;;
+   esac
+   # if we're not either at the base command or an option, give different
+   # output based on the sub command
+   case "${cmd}" in
+      delete | flag_fixup)
+         COMPREPLY=( $(compgen -W "${names_opts}" -- ${cur}) )
+         return 0
+         ;;
+      add)
+         add_opts=$'--start-date\n--base-dir\n--max-update\n${base_opts}'
+         COMPREPLY=( $(compgen -W "${add_opts}" -- ${cur}) )
+         return 0
+         ;;
+      update)
+         update_opts=$'--base-dir\n${base_opts}'
+         COMPREPLY=( $(compgen -W "${update_opts}" -- ${cur}) )
+         return 0
+         ;;
+      download)
+         download_opts=$'--mp3-player\n${base_opts}'
+         COMPREPLY=( $(compgen -W "${download_opts}" -- ${cur}) )
+         return 0
+         ;;
+      audiobook)
+         download_opts=$'--dir\n--mp3-player\n${base_opts}'
+         COMPREPLY=( $(compgen -W "${download_opts}" -- ${cur}) )
+         return 0
+         ;;
+      database)
+         download_opts=$'-a\n--all\n${base_opts}'
+         COMPREPLY=( $(compgen -W "${download_opts}" -- ${cur}) )
+         return 0
+         ;;
+      process | names)
+         # no extra options
+         COMPREPLY=( $(compgen -W "${base_opts}" -- ${cur}) )
+         return 0
+         ;;
+      *)
+         ;;
+   esac
+   return 0
+
+}
+complete -F _pyres pyres

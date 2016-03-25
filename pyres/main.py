@@ -144,11 +144,17 @@ def manage_audiobook(args):
 def debug_database(args):
     """ debug routine to examine the database """
     with PodcastDatabase(args.database) as _database:
-        # fix up the table for one podcast
+        # show info from the database
         if args.all:
             _database.show_all_episodes()
         else:
             _database.show_podcasts()
+
+
+def podcast_names(args):
+    """ display the names of subscribed podcasts """
+    with PodcastDatabase(args.database) as _database:
+        _database.show_names()
 
 
 def parse_command_line():
@@ -245,6 +251,11 @@ def parse_command_line():
     database_parser.add_argument('-a', '--all', action='store_true',
                                  help="show all episode data")
     database_parser.set_defaults(func=debug_database)
+
+    # return a list of podcast names.  Helpful for command-line tab completion
+    names_parser = subparsers.add_parser('names', help="display podcast names",
+                                         parents=[base])
+    names_parser.set_defaults(func=podcast_names)
 
     args = parser.parse_args(sys.argv[1:])
     return args

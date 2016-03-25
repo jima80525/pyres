@@ -241,3 +241,11 @@ class PodcastDatabase(object):
 
         for _tuple in urls:
             print _tuple
+
+    def show_names(self):
+        """ show names of podcasts in the podcasts table """
+        urls = list(self.cursor.execute('SELECT name FROM podcasts ORDER BY '
+                                        'name'))
+
+        for _tuple in urls:
+            print _tuple[0]
