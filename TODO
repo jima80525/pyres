@@ -1,5 +1,9 @@
 Todo list for Pyres
 
+*  pybuilder
+*
+*  Python 3
+*
 *  Get unit tests finished
 *
 *  explore how to refactor top level to make unit tests less obnoxious
@@ -18,8 +22,6 @@ Todo list for Pyres
 *
 *  check out requests lib for http work
 *  http://docs.python-requests.org/en/latest/index.html
-*
-*  explore virtualenv, wrapper and autoenv
 *
 *  Update docs - look into sphinx and how it works
 
