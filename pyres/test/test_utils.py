@@ -148,7 +148,7 @@ class TestAudioConversion(object):
         assert self
         pytest.raises(AttributeError, pyres.utils.fixup_mp3_file, None)
 
-    @patch('pyres.utils.AudioSegment')
+    @patch('pyres.utils.pydub.AudioSegment')
     def test_audio_convert(self, audio_mock):
         """ pass"""
         assert self
