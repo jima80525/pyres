@@ -4,7 +4,7 @@ Utility functions shared by pyres tool
 import os
 import time
 import errno
-from pydub import AudioSegment
+import pydub
 
 
 def mkdir_p(_path):
@@ -46,7 +46,7 @@ def current_date_time_as_string():
 
 def fixup_mp3_file(filename):
     """ convert mp3 file to a format my player will understand """
-    song = AudioSegment.from_mp3(filename)
+    song = pydub.AudioSegment.from_mp3(filename)
     song.export(filename, format="mp3")
 
 
