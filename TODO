@@ -1,6 +1,16 @@
 Todo list for Pyres
 
 *  pybuilder
+Commands I use in paver:
+   test
+   lint
+   run - run the script - funky command line arg processing
+   add_xxx - special calls to add particular test podcasts
+   test
+   test_all
+   cov - does not currently run
+
+
 *
 *  Python 3
 *
