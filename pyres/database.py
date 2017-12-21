@@ -67,11 +67,14 @@ class PodcastDatabase(object):
                                         "?", (name, )))):
             return  # already exists
 
-        self.cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0, ?)",
-                            (name, url, throttle))
-        self.cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
-                            "file text, url text, size integer, state integer)"
-                            % name)
+        try:
+            self.cursor.execute("INSERT INTO podcasts VALUES (?, ?, 0, ?)",
+                                (name, url, throttle))
+            self.cursor.execute("CREATE TABLE '%s' (date text, title text unique, "
+                                "file text, url text, size integer, state integer)"
+                                % name)
+        except sqlite3.IntegrityError as e:
+            print("failed to insert %s:%s" % (name, e))
 
     def add_new_episode_data(self, table, episode):
         """Add the episode data if not already present.  If the episode is
