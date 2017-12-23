@@ -1,4 +1,5 @@
 """ Test test """
+from __future__ import print_function
 import os
 import sys
 import stat
@@ -437,8 +438,8 @@ class TestShowMethods(object):
             _database.show_all_episodes()
             out, _ = capsys.readouterr()
             assert out == "filled_table (False)\n" \
-                "2015/04/19:00:00:00 title 0 URL OK\n"\
-                "2015/04/20:00:00:00 title2 0 URL OK\n\n"
+                          "2015/04/19:00:00:00 title 0\nURL OK\n"\
+                          "2015/04/20:00:00:00 title2 0\nURL OK\n\n"
 
 
 class TestConvertVersion(object):

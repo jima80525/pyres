@@ -1,6 +1,7 @@
 """
 Implements an abstraction to the database.
 """
+from __future__ import print_function
 import sqlite3
 import sys
 import logging
@@ -33,15 +34,15 @@ class PodcastDatabase(object):
             version = cursor.fetchone()[0]
             current_version = 1
             if version != current_version:
-                print "================================="
-                print "CONVERTING DATABASE TO NEW FORMAT"
-                print "================================="
+                print("=================================")
+                print("CONVERTING DATABASE TO NEW FORMAT")
+                print("=================================")
                 self.convert_to_new_version(version, current_version)
                 cursor = self.cursor.execute("PRAGMA user_version = %s" %
                                              current_version)
 
         except sqlite3.OperationalError:
-            print "Failed reading database version or doing conversion"
+            print("Failed reading database version or doing conversion")
             raise
 
     def __enter__(self):
@@ -81,10 +82,10 @@ class PodcastDatabase(object):
         present, do nothing.
         """
         if not episode.date or not episode.title or not episode.url:
+            # not using %s formats for last three in case they are None
             print("Got a bad episode from %s server, will not add: (date, "
                   "title, url):" % table, episode.date, episode.title,
-                  episode.url)  # not using %s formats for last three in case
-                                # they are None
+                  episode.url)
             return False
 
         try:
@@ -205,12 +206,12 @@ class PodcastDatabase(object):
     def convert_to_new_version(self, old_version, current_version):
         """ Do an automatic database conversion. """
         if old_version != 0:
-            print "Unrecognized old version in database conversion", \
-                  old_version
+            print("Unrecognized old version in database conversion",
+                  old_version)
             sys.exit()
         if current_version != 1:
-            print "Unrecognized current version in database conversion", \
-                  current_version
+            print("Unrecognized current version in database conversion",
+                  current_version)
             sys.exit()
 
         # now set it to maxsize for each podcast
@@ -229,13 +230,13 @@ class PodcastDatabase(object):
         names = self.get_podcast_names()
 
         for name in names:
-            print "%s (%s)" % (name, self.does_podcast_need_fixup(name))
+            print("%s (%s)" % (name, self.does_podcast_need_fixup(name)))
             for row in self.cursor.execute("SELECT * FROM '%s'" % name):
                 row_list = list(row)
-                print row_list[0], row_list[1], row_list[5],
+                print(row_list[0], row_list[1], row_list[5],)
                 if row_list[3]:
-                    print "URL OK"
-            print  # extra line to separate podcasts
+                    print("URL OK")
+            print()  # extra line to separate podcasts
 
     def show_podcasts(self):
         """ show entries in the podcasts table """
@@ -243,7 +244,7 @@ class PodcastDatabase(object):
                                         'name'))
 
         for _tuple in urls:
-            print _tuple
+            print(_tuple)
 
     def show_names(self):
         """ show names of podcasts in the podcasts table """
@@ -251,4 +252,4 @@ class PodcastDatabase(object):
                                         'name'))
 
         for _tuple in urls:
-            print _tuple[0]
+            print(_tuple[0])

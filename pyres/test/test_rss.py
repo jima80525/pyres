@@ -440,7 +440,7 @@ class TestRss(object):
 
         # convert the date string to the internally used date time
         date = time.strptime('2015/4/19', "%Y/%m/%d")
-        #("2015/04/19", 4), ("2015/05/19", 4), ("2015/05/20", 3),
+        # ("2015/04/19", 4), ("2015/05/19", 4), ("2015/05/20", 3),
 
         with PodcastDatabase(emptyfile) as _database:
             assert _database

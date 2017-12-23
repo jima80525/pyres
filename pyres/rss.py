@@ -61,7 +61,7 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
             raw_date = raw_date.rsplit('-', 1)[0]
             date = time.strptime(raw_date, "%Y-%m-%dT%H:%M:%S")
         # when comparing,  date None is always the least
-        if start_date >= date:
+        if start_date and start_date >= date:
             continue
         try:
             # make sure as end up with only ascii in the titles.  Not great
@@ -71,7 +71,7 @@ def __process_items(feed, podcast_path_name, podcast_name, start_date):
             title = feed_data['title'].encode('ascii', 'replace')
             # titles with single quotes (') provide an extra challenge for
             # SQL entries.
-            title = title.replace("'", "''")
+            title = title.replace("'".encode('utf-8'), "''".encode('utf-8'))
             # there can be multiple links to a single episode.  We only want
             # the audio one.
             link = None

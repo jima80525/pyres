@@ -49,12 +49,12 @@ def add_url(args):
                                                        int(args.max_update),
                                                        args.start_date)
         if not name or not added:
-            print "Error: No episodes added"
+            print("Error: No episodes added")
         elif args.start_date:
             print("%-50s: %3d episodes since %s" %
                   (name, added, utils.date_as_string(args.start_date)))
         else:
-            print "%-50s: %3d episodes returned" % (name, added)
+            print("%-50s: %3d episodes returned" % (name, added))
 
 
 def update_download_list(args):
@@ -74,7 +74,7 @@ def update_download_list(args):
                 total_added += added
                 print("%-50s: %3d episodes since %s" %
                       (name, added, utils.date_as_string(_tuple[2])))
-        print
+        print()
         print("There are a total of %d episodes to be updated." %
               (total_added))
 
@@ -101,11 +101,11 @@ def process_rss_feeds(args):
             downloader.download_url_list()
             for episode in downloader.return_successful_files():
                 if _database.does_podcast_need_fixup(episode.podcast):
-                    print "Fixing ", episode.file_name
+                    print("Fixing ", episode.file_name)
                     utils.fixup_mp3_file(episode.file_name)
 
                 _database.mark_episode_downloaded(episode)
-                print episode.file_name
+                print(episode.file_name)
 
 
 def download_to_player(args):
@@ -117,12 +117,12 @@ def download_to_player(args):
         for podcast in podcasts:
             new_episodes = _database.find_episodes_to_copy(podcast)
             if len(new_episodes) != 0:
-                print "%-50s: %3d" % (podcast, len(new_episodes))
+                print("%-50s: %3d" % (podcast, len(new_episodes)))
                 episodes.extend(new_episodes)
 
         if episodes:
-            print
-            print "Copying %d episodes to player" % len(episodes)
+            print()
+            print("Copying %d episodes to player" % len(episodes))
 
             # copy all the files in one list so they come out in date
             # order
@@ -131,8 +131,8 @@ def download_to_player(args):
             for episode in episodes:
                 _database.mark_episode_on_mp3_player(episode)
         else:
-            print
-            print "No episodes to copy"
+            print()
+            print("No episodes to copy")
 
 
 def manage_audiobook(args):

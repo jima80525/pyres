@@ -1,8 +1,10 @@
 """
 Manage downloading episodes to filesystem.
 """
-import urllib2
-import Queue
+from __future__ import print_function
+from six.moves.urllib_request import urlopen
+from six.moves.urllib_error import URLError
+import queue
 import time
 import os
 import threading
@@ -12,22 +14,22 @@ import threading
 class Downloader(threading.Thread):
     """Threaded File Downloader"""
 
-    #----------------------------------------------------------------------
-    def __init__(self, task_id, queue, out_queue):
+    # ----------------------------------------------------------------------
+    def __init__(self, task_id, in_queue, out_queue):
         threading.Thread.__init__(self)
-        self.queue = queue
+        self.queue = in_queue
         self.out_queue = out_queue
         self.task_id = task_id
         self.name = "task %d" % task_id
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def run(self):
         while True:
             episode = self.queue.get()
             self.download_file(episode)
             self.queue.task_done()
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def send_error(self, episode, name, message):
         """ Utility to put an error message in the out_queue """
         episode.error_msg = "%s:%s" % (name, message)
@@ -37,13 +39,13 @@ class Downloader(threading.Thread):
         """ Utility to put an error message in the out_queue """
         self.out_queue.put((self.task_id, downloaded_current, episode))
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def download_file(self, episode):
         """ Download and write the file to disc """
         # open the url
         try:
-            handle = urllib2.urlopen(episode.url)
-        except urllib2.URLError as err:
+            handle = urlopen(episode.url)
+        except URLError as err:
             self.send_error(episode, episode.url, err)
             return
 
@@ -74,7 +76,7 @@ class Downloader(threading.Thread):
 class DisplayStatus(object):
     """console progress indicator for multiple threads"""
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def __init__(self, number_threads, number_files):
         self.num = number_threads
         self.total_files = number_files
@@ -91,16 +93,16 @@ class DisplayStatus(object):
 
     def finish(self, failed_files):
         """ Close out status """
-        print  # get us off status line
+        print()  # get us off status line
         if not failed_files:
             print("Successfully downloaded %s files" %
                   self.successful_file_count)
         else:
             print("Downloaded %s files of which %s failed" %
                   (self.total_files, len(failed_files)))
-            print "Failed files:"
+            print("Failed files:")
             for episode in failed_files:
-                print "\t%s" % episode.file_name
+                print("\t%s" % episode.file_name)
 
     def update(self, task_id, amt_read, episode):
         """ Update display status.  JHA More info here """
@@ -125,7 +127,7 @@ class DisplayStatus(object):
             display_str = display_str + tmp_str
 
         display_str = display_str + chr(8)*(len(display_str)+1)
-        print display_str,
+        print(display_str, end='')
 
 
 # ----------------------------------------------------------------------
@@ -134,8 +136,8 @@ class PodcastDownloader(object):
     def __init__(self, episodes):
         self.episodes = episodes
         self.num_threads = min(3, len(episodes))
-        self.queue = Queue.Queue()
-        self.out_queue = Queue.Queue()
+        self.queue = queue.Queue()
+        self.out_queue = queue.Queue()
         self.status = DisplayStatus(self.num_threads, len(episodes))
         self.failed_files = list()
         self.successful_files = list()

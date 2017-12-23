@@ -67,7 +67,7 @@ class TestFilemanager(object):
         filemgr = pyres.filemanager.FileManager(base_dir=copy_base)
         filemgr.copy_audiobook("source")
         assert copyfile.called
-        print copyfile.call_args_list
+        print(copyfile.call_args_list)
         assert copyfile.call_count == 3
         assert copyfile.any_call('/foo/baz')
         assert copyfile.any_call('/foo/bar/spam')
@@ -119,7 +119,6 @@ class TestFilemanager(object):
 
         # test multiple substitutions
         single_file('1b1a1z.1mp3', '01b01a01z.01mp3')
-        #print copyfile.call_args_list
 
     @patch('shutil.copyfile')
     @patch('pyres.filemanager.utils.mkdir_p')
@@ -137,7 +136,7 @@ class TestFilemanager(object):
             ('source', [], ("wilma",)),
         ]
         filemgr.copy_audiobook("source", "dest")
-        print copyfile.call_args_list
+        print(copyfile.call_args_list)
         copyfile.assert_called_with(os.path.join('source', 'wilma'),
                                     os.path.join('copy_base', 'dest', 'source',
                                                  'wilma'))

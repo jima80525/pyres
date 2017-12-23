@@ -1,11 +1,11 @@
-""" Test the download module - mock out urllib2 """
+""" Test the download module - mock out urllib """
 import pytest
 import time
 from mock import patch
 from mock import Mock
 from mock import mock_open
-import urllib2
-from pyres.download import PodcastDownloader
+from six.moves.urllib_error import URLError
+import pyres.download
 import pyres.episode
 
 
@@ -20,25 +20,26 @@ def episode():
 @pytest.fixture
 def urllib_mock():
     """ Mocks out the urllib urlopen command with general, working values """
-    urllib2.urlopen = Mock()
-    urllib2.urlopen.return_value = Mock()
-    urllib2.urlopen.return_value.getcode.return_value = 200
+    urlopen = Mock()
+    urlopen.return_value = Mock()
+    urlopen.return_value.getcode.return_value = 200
     # create the metadata object - this needs to have enough metadata for the
     # downloader to get the content length
     meta = Mock()
     meta.getheaders.return_value = ["20", ]
-    urllib2.urlopen.return_value.info.return_value = meta
-    return urllib2.urlopen
+    urlopen.return_value.info.return_value = meta
+    return urlopen
 
 
 class TestOpen(object):
     """ test the Get Urls method """
+
     def test_bad_url(self, episode):  # pylint: disable=W0621
         """  tests opening bad url """
         assert self
         # mock out open to raise an error
-        urllib2.urlopen = Mock(side_effect=urllib2.URLError("test"))
-        downloader = PodcastDownloader([episode])
+        urlopen = Mock(side_effect=URLError("test"))
+        downloader = pyres.download.PodcastDownloader([episode])
         downloader.download_url_list()
         failed = downloader.return_failed_files()
         assert len(failed) == 1
@@ -51,21 +52,21 @@ class TestOpen(object):
         # change mock to return a 404
         urllib_mock.return_value.getcode.return_value = 404
 
-        downloader = PodcastDownloader([episode])
+        downloader = pyres.download.PodcastDownloader([episode])
         downloader.download_url_list()
         failed = downloader.return_failed_files()
         assert len(failed) == 1
         worked = downloader.return_successful_files()
         assert len(worked) == 0
 
-    def test_fileio_error(self, episode, urllib_mock):  # pylint: disable=W0621
+    def test_fileio_error(self, episode, urllib_mock):
         """  test writing to filesystem failure """
         assert self
         # need to assert this as it's all configured for this test
         assert urllib_mock
 
         # path in the given episode fails to open, cause IO error
-        downloader = PodcastDownloader([episode])
+        downloader = pyres.download.PodcastDownloader([episode])
         downloader.download_url_list()
         failed = downloader.return_failed_files()
         assert len(failed) == 1
@@ -81,7 +82,7 @@ class TestOpen(object):
 
         mock_file = mock_open()
         with patch('pyres.download.open', mock_file, create=True):
-            downloader = PodcastDownloader([episode])
+            downloader = pyres.download.PodcastDownloader([episode])
             downloader.download_url_list()
         failed = downloader.return_failed_files()
         assert len(failed) == 0

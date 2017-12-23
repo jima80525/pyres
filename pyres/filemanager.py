@@ -49,7 +49,7 @@ class FileManager(object):
     """ Class to manage filesystem on mp3 player """
     def __init__(self, base_dir):
         # set default value for mp3 player
-        #base_dir = base_dir or "TestFiles"
+        # base_dir = base_dir or "TestFiles"
         base_dir = base_dir or "/media/jima/3C33-7AC4/"
         self.base_dir = base_dir
         utils.mkdir_p(self.base_dir)
@@ -63,9 +63,9 @@ class FileManager(object):
         """ Main routine to convert and copy files to mp3 player """
         if not dest_dir:
             dest_dir = source_dir
-            print "Copying audiobook from %s" % source_dir
+            print("Copying audiobook from %s" % source_dir)
         else:
-            print "Coping audiobook from %s to %s" % (source_dir, dest_dir)
+            print("Coping audiobook from %s to %s" % (source_dir, dest_dir))
 
         for root, dirs, files in os.walk(source_dir):
             dirs.sort()
@@ -77,7 +77,7 @@ class FileManager(object):
                 newfile = _double_digit_name(os.path.join(self.base_dir,
                                                           dest_dir, file_name))
                 logging.debug("copying %s to %s", file_name, newfile)
-                print "copying to %s" % (newfile)
+                print("copying to %s" % (newfile))
                 shutil.copyfile(file_name, newfile)
 
     def copy_episodes_to_player(self, episodes):
