@@ -428,7 +428,9 @@ class TestShowMethods(object):
             assert _database
             _database.show_podcasts()
             out, _ = capsys.readouterr()
-            assert out == "('filled_table', 'url', 0, 2147483647)\n"
+            # JHA 1/1/18 - the timestamp was 32 vs 64 bit dependent - ignore it
+            # assert out == "('filled_table', 'url', 0, 2147483647)\n"
+            assert out.startswith("('filled_table', 'url', 0, ")
 
     def test_show_episodes(self, capsys, filledfile):  # pylint: disable=W0621
         """  tests the show_all_episodes function """
