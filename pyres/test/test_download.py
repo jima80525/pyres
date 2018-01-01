@@ -20,15 +20,14 @@ def episode():
 @pytest.fixture
 def urllib_mock():
     """ Mocks out the urllib urlopen command with general, working values """
-    urlopen = Mock()
-    urlopen.return_value = Mock()
-    urlopen.return_value.getcode.return_value = 200
+    pyres.download.urlopen = Mock()
+    pyres.download.urlopen.return_value.getcode.return_value = 200
     # create the metadata object - this needs to have enough metadata for the
     # downloader to get the content length
     meta = Mock()
     meta.getheaders.return_value = ["20", ]
-    urlopen.return_value.info.return_value = meta
-    return urlopen
+    pyres.download.urlopen.return_value.info.return_value = meta
+    return pyres.download.urlopen
 
 
 class TestOpen(object):
@@ -38,7 +37,7 @@ class TestOpen(object):
         """  tests opening bad url """
         assert self
         # mock out open to raise an error
-        urlopen = Mock(side_effect=URLError("test"))
+        pyres.download.urlopen = Mock(side_effect=URLError("test"))
         downloader = pyres.download.PodcastDownloader([episode])
         downloader.download_url_list()
         failed = downloader.return_failed_files()
