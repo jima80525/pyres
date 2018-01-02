@@ -4,7 +4,7 @@ Manage downloading episodes to filesystem.
 from __future__ import print_function
 from six.moves.urllib_request import urlopen
 from six.moves.urllib_error import URLError
-import queue
+from six.moves import queue
 import time
 import os
 import threading
