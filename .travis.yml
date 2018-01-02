@@ -17,3 +17,10 @@ python:
 script:
   - paver test
 sudo: true
+notifications:
+  email:
+    - jima80525@gmail.com
+  on_success: always
+  on_failure: always
+
+
