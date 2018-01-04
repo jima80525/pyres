@@ -1,5 +1,6 @@
 ===================================
- Pyres podcast subscription manager
+ Pyres podcast subscription manager .. image:: https://travis-ci.org/jima80525/pyres.svg?branch=master
+    :target: https://travis-ci.org/jima80525/pyres
 ===================================
 
 This project provides a simple podcast subscription manager which pulls podcasts
