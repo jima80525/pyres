@@ -1,7 +1,8 @@
 ===================================
- Pyres podcast subscription manager .. image:: https://travis-ci.org/jima80525/pyres.svg?branch=master
-    :target: https://travis-ci.org/jima80525/pyres
+ Pyres podcast subscription manager
 ===================================
+.. image:: https://travis-ci.org/jima80525/pyres.svg?branch=master
+    :target: https://travis-ci.org/jima80525/pyres
 
 This project provides a simple podcast subscription manager which pulls podcasts
 from the web and copies them to an MP3 player.
