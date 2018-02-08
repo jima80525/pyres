@@ -172,16 +172,6 @@ class TestAddPodcast(object):
             names = _database.get_podcast_names()
             assert len(names) == 0
 
-    def test_fixup_podcast(self, emptyfile):   # pylint: disable=W0621
-        """ test setting fixup flag on podcasts """
-        assert self
-        with PodcastDatabase(emptyfile) as _database:
-            _database.add_podcast('name no fixup', 'url', sys.maxsize)
-            _database.add_podcast('name fixup', 'url fix', sys.maxsize)
-            _database.mark_podcast_for_fixups('name fixup')
-            assert _database.does_podcast_need_fixup('name fixup')
-            assert not _database.does_podcast_need_fixup('name no fixup')
-
     def test_throttle_rate(self, emptyfile):  # pylint: disable=W0621
         """ Make sure throttle rate is stored and returned correctly """
         assert self
@@ -439,7 +429,7 @@ class TestShowMethods(object):
             assert _database
             _database.show_all_episodes()
             out, _ = capsys.readouterr()
-            assert out == "filled_table (False)\n" \
+            assert out == "filled_table\n" \
                           "2015/04/19:00:00:00 title 0\nURL OK\n"\
                           "2015/04/20:00:00:00 title2 0\nURL OK\n\n"
 

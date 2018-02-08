@@ -34,12 +34,6 @@ def delete_podcast(args):
         _database.delete_podcast(args.name)
 
 
-def flag_fixup_for_podcast(args):
-    """ Mark a podcast as needing fixups """
-    with PodcastDatabase(args.database) as _database:
-        _database.mark_podcast_for_fixups(args.name)
-
-
 def add_url(args):
     """ add a new podcast to the system """
     logging.debug("in add url with %s %s", args.url, args.start_date)
@@ -100,10 +94,6 @@ def process_rss_feeds(args):
             downloader = PodcastDownloader(episodes)
             downloader.download_url_list()
             for episode in downloader.return_successful_files():
-                if _database.does_podcast_need_fixup(episode.podcast):
-                    print("Fixing ", episode.file_name)
-                    utils.fixup_mp3_file(episode.file_name)
-
                 _database.mark_episode_downloaded(episode)
                 print(episode.file_name)
 
@@ -196,15 +186,6 @@ def parse_command_line():
                             default=sys.maxsize, help='The maximum number of '
                             'episodes to download at one time.')
     add_parser.set_defaults(func=add_url)
-
-    # podcast flag_fixup command
-    flag_fixup_parser = subparsers.add_parser('flag_fixup', help="mark flag "
-                                              "on podcast indicating mp3 files"
-                                              " need to be post-processed",
-                                              parents=[base])
-    flag_fixup_parser.add_argument('name', action='store', help="the name of "
-                                   "the podcast to flag for fixups")
-    flag_fixup_parser.set_defaults(func=flag_fixup_for_podcast)
 
     # Update existing podcasts - download to from web to computer
     update_parser = subparsers.add_parser('update', help="update the list of "

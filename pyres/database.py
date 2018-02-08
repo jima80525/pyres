@@ -144,24 +144,6 @@ class PodcastDatabase(object):
         logging.debug("in on player : %s %s", episode.podcast, episode.title)
         self._update_state(episode.podcast, episode.title, 2)
 
-    def mark_podcast_for_fixups(self, name):
-        """ update flag on podcast to indicate it needs fixup """
-        self.cursor.execute("SELECT name from  'podcasts' where name = '%s'"
-                            % (name))
-        check1 = self.cursor.fetchone()
-        if check1:
-            self.cursor.execute("UPDATE 'podcasts' SET needsfix=1 where name "
-                                "= '%s'" % (name))
-        else:
-            raise sqlite3.OperationalError
-
-    def does_podcast_need_fixup(self, name):
-        """ Checks database to see if this podcast needs fixups. """
-        self.cursor.execute("SELECT needsfix from 'podcasts' where name = "
-                            "'%s'" % (name))
-        check1 = self.cursor.fetchone()
-        return bool(check1[0])
-
     def delete_podcast(self, name):
         """Delete a podcast from the main table.  Also drops the episode table
            for this podcast.
@@ -230,7 +212,7 @@ class PodcastDatabase(object):
         names = self.get_podcast_names()
 
         for name in names:
-            print("%s (%s)" % (name, self.does_podcast_need_fixup(name)))
+            print(name)
             for row in self.cursor.execute("SELECT * FROM '%s'" % name):
                 row_list = list(row)
                 print(row_list[0], row_list[1], row_list[5],)

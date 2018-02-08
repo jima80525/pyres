@@ -140,26 +140,6 @@ class TestCleanName(object):
         assert result == "this is a string"
 
 
-class TestAudioConversion(object):
-    """ Test function which does the fixup.  This is fairly lame as we're
-    mocking out the two calls it makes.  """
-    def test_none_raises(self):
-        """ makes sure that passing in none fails """
-        assert self
-        pytest.raises(AttributeError, pyres.utils.fixup_mp3_file, None)
-
-    @patch('pyres.utils.pydub.AudioSegment')
-    def test_audio_convert(self, audio_mock):
-        """ pass"""
-        assert self
-        song_mock = Mock()
-        audio_mock.from_mp3.return_value = song_mock
-
-        pyres.utils.fixup_mp3_file("fred")
-        audio_mock.from_mp3.assert_called_once_with('fred')
-        song_mock.export.assert_called_once_with('fred', format='mp3')
-
-
 class TestAcroname(object):
     """ Test function which produces a three-letter acronym from the podcast
     name.  There are several special cases for this function which are tested

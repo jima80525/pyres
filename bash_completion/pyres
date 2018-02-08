@@ -7,7 +7,7 @@ _pyres()
    prev="${COMP_WORDS[COMP_CWORD-1]}"
    cmd="${COMP_WORDS[1]}"
    base_opts=$'-v\n--verbose\n-b\n--no-backup\n-d\n--database'
-   commands=$'delete\nadd\nflag_fixup\nupdate\nprocess\ndownload\naudiobook\ndatabase\nnames'
+   commands=$'delete\nadd\nupdate\nprocess\ndownload\naudiobook\ndatabase\nnames'
    names=$(pyres names)
    names_opts=$'${base_opts}\n${names}'
 
@@ -32,7 +32,7 @@ _pyres()
    # if we're not either at the base command or an option, give different
    # output based on the sub command
    case "${cmd}" in
-      delete | flag_fixup)
+      delete)
          COMPREPLY=( $(compgen -W "${names_opts}" -- ${cur}) )
          return 0
          ;;
