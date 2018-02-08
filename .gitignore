@@ -4,3 +4,6 @@ BACKUP
 rss.db
 copy_base
 Files
+.cache
+.coverage
+.pytest_cache
