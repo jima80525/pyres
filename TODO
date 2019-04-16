@@ -1,37 +1,12 @@
 Todo list for Pyres
 
-*  pybuilder
-Commands I use in paver:
-   test
-   lint
-   run - run the script - funky command line arg processing
-   add_xxx - special calls to add particular test podcasts
-   test
-   test_all
-   cov - does not currently run
-
-
-*
-*  Python 3
-*
-*  Get unit tests finished
-*
 *  explore how to refactor top level to make unit tests less obnoxious
 *
 *  Convert database access to peewee
 *  https://peewee.readthedocs.org/en/latest/peewee/installation.html
 *
-*  Check out command line packages
-*  http://docs.python-guide.org/en/latest/scenarios/cli/
-*
-*  check out cookie cutter
-*  https://github.com/audreyr/cookiecutter
-*
 *  Check out enaml
 *  https://github.com/nucleic/enaml
-*
-*  check out requests lib for http work
-*  http://docs.python-requests.org/en/latest/index.html
 *
 *  Update docs - look into sphinx and how it works
 

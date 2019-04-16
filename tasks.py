@@ -44,10 +44,6 @@ def lint(c):
         print_green("Linting passed.")
 
 
-@task(lint)
-def newtest(c):
-    print("IN NEW TEST")
-
 
 @task
 def test(c):
@@ -60,6 +56,49 @@ def test(c):
         ]
     )
 
+
+# JHA TODO:
+#     add task to run only a single test
+#     add param to turn on -s for output of stdout all the time for pytest
+#     add task to simply run the program with params
+#     add task to add particular podcast
+"""
+@task
+@consume_args
+def run(args):
+    # The main script expects to get the called executable's name as
+    # argv[0]. However, paver doesn't provide that in args. Even if it did (or
+    # we dove into sys.argv), it wouldn't be useful because it would be paver's
+    # executable. So we just pass the package name in as the executable name,
+    # since it's close enough. This should never be seen by an end user
+    # installing through Setuptools anyway.
+    # This is stuffed into sys.argv as setuptools calls entry points without
+    # args.
+    from pyres.main import main
+    sys.argv = ['pyres']
+    sys.argv.extend(args)
+    raise SystemExit(main())
+
+
+@task
+def add_sciam():
+    # see notes in run task above
+    from pyres.main import main
+    arg = ['add', 'http://rss.sciam.com/sciam/60secsciencepodcast',
+           '--start-date', '05/01/15', '--max-update', '3']
+           #'--start-date', '10/25/14', '--max-update', '3']
+    #arg = ['add', 'http://rss.sciam.com/sciam/60secsciencepodcast',
+           #'--start-date', '10/25/14']
+    sys.argv = ['pyres']
+    sys.argv.extend(arg)
+    main()
+    arg = ['add', 'http://rss.sciam.com/sciam/60-second-psych',
+           '--start-date', '09/20/14']
+    sys.argv = ['pyres']
+    sys.argv.extend(arg)
+    raise SystemExit()
+"""
+#
 
 @task
 def build(c):
