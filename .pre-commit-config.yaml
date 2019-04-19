@@ -1,10 +1,12 @@
+exclude: 'old_code'
 repos:
 -   repo: https://github.com/ambv/black
     rev: 19.3b0
     hooks:
     - id: black
+      args: [-l 80, ]
       language_version: python3.6
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.7.7
+    rev: v2.0.0
     hooks:
     - id: flake8
