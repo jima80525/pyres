@@ -1,5 +1,5 @@
 """ Task definitions for invoke command line utility for building, testing and
-    releasing markplates. """
+    releasing pyres. """
 import colorama
 from invoke import run
 from invoke import task
@@ -8,12 +8,7 @@ import pytest
 import setuptools
 import sys
 
-PROJECT_FILES = [
-    'pyres',
-    'tests',
-    'tasks.py',
-    'setup.py',
-]
+PROJECT_FILES = ["pyres", "tests", "tasks.py", "setup.py"]
 
 
 def print_green(message):
@@ -37,21 +32,20 @@ def lint(c):
     """Run lint and return an exit code."""
     files = " ".join(PROJECT_FILES)
     res = run("flake8 --max-complexity=10 %s" % files, warn=True)
-    if (res.exited):
+    if res.exited:
         print_red("Failed linting!")
         raise exceptions.Exit()
     else:
         print_green("Linting passed.")
 
 
-
 @task
 def test(c):
     pytest.main(
         [
-            "--cov=markplates",
-            "--cov-report=term-missing",
-            "--cov-report=term:skip-covered",
+            "--cov=pyres",
+            # "--cov-report=term-missing",
+            # "--cov-report=term:skip-covered",
             "tests",
         ]
     )
@@ -78,8 +72,10 @@ def run(args):
     sys.argv = ['pyres']
     sys.argv.extend(args)
     raise SystemExit(main())
+"""
 
 
+"""
 @task
 def add_sciam():
     # see notes in run task above
@@ -98,7 +94,7 @@ def add_sciam():
     sys.argv.extend(arg)
     raise SystemExit()
 """
-#
+
 
 @task
 def build(c):
@@ -107,27 +103,21 @@ def build(c):
 
 @task
 def tox(c):
-    run("tox")
-
-
-@task
-def release(c):
-    print("coming soon!")
+    run("tox -p all")
 
 
 @task
 def format(c):
-    run("black -l 80 markplates")
-    run("black -l 80 tests")
-    run("black -l 80 tasks.py")
+    for source in PROJECT_FILES:
+        run(f"black -l 80 {source}")
 
 
 @task
 def clean(c, bytecode=False, test=False, extra=""):
-    patterns = ["build/", "dist/", "markplates.egg-info/"]
+    patterns = ["build/", "dist/", "pyres.egg-info/"]
     if bytecode:
         patterns.append("__pycache__/")
-        patterns.append("markplates/__pycache__/")
+        patterns.append("pyres/__pycache__/")
         patterns.append("tests/__pycache__/")
     if test:
         patterns.append(".coverage")

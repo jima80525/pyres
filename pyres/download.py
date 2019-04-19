@@ -5,8 +5,6 @@ import time
 import tqdm
 import trio
 
-asks.init("trio")
-
 
 class Downloader:
     """ Manage the download of a single URL to a specified file. """
@@ -21,7 +19,9 @@ class Downloader:
         try:
             async with await asks.get(url, stream=True) as req:
                 file_size = int(req.headers["Content-Length"])
-                progbar = tqdm.tqdm(total=file_size, position=position, desc=name)
+                progbar = tqdm.tqdm(
+                    total=file_size, position=position, desc=name
+                )
                 with open(filename, "wb") as podcast_file:
                     async for chunk in req.body:
                         progbar.update(len(chunk))
@@ -30,7 +30,9 @@ class Downloader:
                 self.successful_files.append(name)
         except Exception:
             self.failed_files.append(name)
-            progbar = tqdm.tqdm(total=1, position=position, desc=f"{name} - ERROR")
+            progbar = tqdm.tqdm(
+                total=1, position=position, desc=f"{name} - ERROR"
+            )
             progbar.update(1)
             progbar.close()
         finally:
@@ -52,7 +54,10 @@ class Downloader:
 
 if __name__ == "__main__":
     sites = [
-        ("http://thehistoryofrome.com/lib/audio/1-in-the-beginning.mp3", "one.mp3"),
+        (
+            "http://thehistoryofrome.com/lib/audio/1-in-the-beginning.mp3",
+            "one.mp3",
+        ),
         (
             "http://thehistoryofrome.com/lib/audio/2-youthful-indiscretions.mp3",
             "two.mp3",

@@ -18,10 +18,10 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
-    description="Manage podcast subscriptions"
+    description="Manage podcast subscriptions",
     entry_points={"console_scripts": ["pyres=pyres.__main__:main"]},
     include_package_data=False,
-    install_requires=["Click", "feedparser>=5.2.1", ],
+    install_requires=["Click", "feedparser>=5.2.1"],
     license="MIT",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -31,4 +31,3 @@ setup(
     url="https://github.com/jima80525/pyres",
     version="1.0.0",
 )
-
