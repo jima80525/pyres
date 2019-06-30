@@ -43,10 +43,9 @@ def lint(c):
 def test(c):
     pytest.main(
         [
-            "--cov=pyres",
             # "--cov-report=term-missing",
             # "--cov-report=term:skip-covered",
-            "tests",
+            "tests"
         ]
     )
 
@@ -103,7 +102,7 @@ def build(c):
 
 @task
 def tox(c):
-    run("tox -p all")
+    run("tox")
 
 
 @task

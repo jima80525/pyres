@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.7
 """ Manage downloading episodes to filesystem.  """
-import asks
 import time
+import asks
 import tqdm
 import trio
 
