@@ -4,7 +4,7 @@ import os
 import sys
 import stat
 
-# import time
+import datetime
 import peewee
 import pytest
 from pyres.database import PodcastDatabase
@@ -38,32 +38,26 @@ def filledfile(emptyfile):  # pylint: disable=W0621
     """ Tests for add episode data function """
     # get a fixed date
     assert emptyfile
-    """
-    date = time.strptime("2015/4/19", "%Y/%m/%d")
-    episode = pyres.episode.Episode(
-        base_path="path",
-        date=date,
-        title="title",
-        url="link",
-        podcast=_FILLED_TABLE_NAME,
-    )
-    with PodcastDatabase(emptyfile) as _database:
-        assert _database
-        _database.add_podcast(_FILLED_TABLE_NAME, "url", sys.maxsize)
+    date = datetime.datetime.strptime("2015/4/19", "%Y/%m/%d")
+    with PodcastDatabase(emptyfile) as db:
+        assert db
+        db.add_podcast(_FILLED_TABLE_NAME, "url", sys.maxsize)
         # add a valid episode
-        add_and_check(_database, _FILLED_TABLE_NAME, episode)
-        episode.title = "title2"
-        episode.date = time.strptime("2015/4/20", "%Y/%m/%d")
-        add_and_check(_database, _FILLED_TABLE_NAME, episode, 2)
+        add_and_check(db, _FILLED_TABLE_NAME, "title", date, "link")
+        date = datetime.datetime.strptime("2015/4/20", "%Y/%m/%d")
+        add_and_check(db, _FILLED_TABLE_NAME, "title2", date, "link2", 2)
 
-    """
     return emptyfile
 
 
-def add_and_check(database, table_name, episode, expected=1):
-    """ utility to add episode and ensure there is a single episode for that
+def add_and_check(database, table_name, name, date, url, expected=1):
+    """ utility to add episode and ensure there is a known number of episodes for that
     podcast """
-    assert database.add_new_episode_data(table_name, episode)
+    print("before")
+    database.show_all_episodes()
+    print("after")
+    ep = database.add_new_episode_data(table_name, name, date, url)
+    assert ep
     eps = database.find_episodes_to_download(table_name)
     assert len(eps) == expected
     eps = database.find_episodes_to_copy(table_name)
@@ -102,11 +96,10 @@ class TestOpen(object):
         with pytest.raises(AttributeError):
             PodcastDatabase(None)
 
-    def xxxtest_rollback(self, filledfile):  # pylint: disable=W0621
+    def test_rollback(self, filledfile):  # pylint: disable=W0621
         """ Test that an exception raised inside a 'with' clause causes a
         rollback of the database. """
         assert self
-        """
         # first add podcast with one episode
         with PodcastDatabase(filledfile) as _database:
             names = _database.get_podcast_names()
@@ -114,6 +107,7 @@ class TestOpen(object):
             assert _FILLED_TABLE_NAME in names
             episodes = _database.find_episodes_to_download(_FILLED_TABLE_NAME)
             assert len(episodes) == 2
+        """
         # now add one but throw exception in the with block
         with pytest.raises(Exception):
             with PodcastDatabase(filledfile) as _database:

@@ -38,14 +38,11 @@ class PodcastDatabase(object):
 
         DATABASE.init(file_name)
 
-        print("in init")
         DATABASE.connect()
         DATABASE.create_tables([Podcast, Episode])
-        print("leaving init")
         # JHA TODO figure out how to use it as a stand-alone object
 
     def __enter__(self):
-        print("in enter")
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -57,7 +54,6 @@ class PodcastDatabase(object):
             DATABASE.rollback()
 
         DATABASE.close()
-        print("in exit")
 
     def show_names(self):
         print("Podcasts in database:")
@@ -94,40 +90,62 @@ class PodcastDatabase(object):
             print("got new podcast", podcast)
         return podcast
 
-    def add_new_episode_data(self, podcast, title, file, size, url):
+    def add_new_episode_data(self, podcast_name, title, date, url):
         try:
-            print(f"adding {title} with url={url}")
+            # fred = datetime.datetime.now()
+            podcast = Podcast.select().where(Podcast.name == podcast_name).get()
+            print(f"adding {title} with url={url} to {podcast} with {date}")
             episode = Episode(
                 podcast=podcast,
-                title=title,
-                date=datetime.datetime.now(),
-                file=file,
-                size=size,
-                state=1,
+                title="title",
+                date=date,
+                file="",
+                size=0,
+                state=0,
                 url=url,
             )
             episode.save()
-            print("JIMA TEST")
-            for ep in Episode.select():
-                print(ep.title)
-            print("JIMA END TEST")
             return episode
-        except Exception:
-            print(
-                f"Failed adding episode {title}. Episode with same url exists."
-            )
+        except Exception as ex:
+            print(f"Failed adding episode {title}: {ex}")
+
+    def find_episodes(self, table, state):
+        podcast = Podcast.select().where(Podcast.name == table).get()
+        print(podcast.name)
+
+        episodes = list()
+        for ep in Episode.select().join(Podcast).where(Episode.state == state):
+            print(ep.title, ep.podcast.name)
+            episodes.append(ep)
+
+        return episodes
+
+    def find_episodes_to_copy(self, table):
+        return self.find_episodes(table, 1)
+
+    def find_episodes_to_download(self, table):
+        return self.find_episodes(table, 0)
 
 
 def populate():
     with PodcastDatabase("new_rss.db") as db:
-        tal = db.add_podcast("This American Life", "url", 0)
-        two = db.add_podcast("two name", "twourl", 2)
-        db.add_new_episode_data(two, "two ep1", "two file1", 13, "two url1")
-        db.add_new_episode_data(two, "two ep2", "two file2", 13, "two url2")
-        db.add_new_episode_data(tal, "tal ep1", "tal file1", 13, "tal url1")
-        db.add_new_episode_data(tal, "tal ep2", "tal file2", 13, "tal url2")
-        db.add_new_episode_data(tal, "tal ep3", "tal file3", 13, "tal url3")
-        db.add_new_episode_data(tal, "tal ep5", "tal file4", 14, "tal url7")
+        db.add_podcast("This American Life", "url", 0)
+        db.add_podcast("two name", "twourl", 2)
+        date = datetime.datetime.now()
+        db.add_new_episode_data("two name", "two ep1", date, "two url1")
+        db.add_new_episode_data("two name", "two ep2", date, "two url2")
+        db.add_new_episode_data(
+            "This American Life", "tal ep1", date, "tal url1"
+        )
+        db.add_new_episode_data(
+            "This American Life", "tal ep2", date, "tal url2"
+        )
+        db.add_new_episode_data(
+            "This American Life", "tal ep3", date, "tal url3"
+        )
+        db.add_new_episode_data(
+            "This American Life", "tal ep5", date, "tal url7"
+        )
 
 
 if __name__ == "__main__":
@@ -139,8 +157,6 @@ if __name__ == "__main__":
         # db.show_podcasts()
 
 """
-    def find_episodes_to_copy(self, table):
-    def find_episodes_to_download(self, table):
     def find_episodes(self, table, state):
     def mark_episode_downloaded(self, episode):
     def mark_episode_on_mp3_player(self, episode):
