@@ -25,7 +25,7 @@ class Episode(BaseModel):
     size = pw.IntegerField(null=True)
     state_choices = ((0, "unknown"), (1, "downloaded"), (2, "on player"))
     state = pw.IntegerField(choices=state_choices)
-    url = pw.TextField(unique=False)
+    url = pw.TextField(unique=True)
 
     def get_state_label(self):
         return dict(self.state_choices)[self.state]
@@ -47,10 +47,8 @@ class PodcastDatabase(object):
 
     def __exit__(self, exception_type, exception_value, traceback):
         if not exception_type:
-            print("COMMITTING")
             DATABASE.commit()
         else:
-            print("ROLLING BACK")
             DATABASE.rollback()
 
         DATABASE.close()
@@ -76,6 +74,9 @@ class PodcastDatabase(object):
             print(podcast.name, podcast.throttle, podcast.url)
 
     def add_podcast(self, name, url, throttle):
+        if not name or not url:
+            raise AttributeError()
+
         try:
             podcast = Podcast(
                 name=name,
@@ -85,16 +86,15 @@ class PodcastDatabase(object):
             )
             podcast.save()
         except Exception:
-            print(f"Failed adding {name}. Podcast with same url exists.")
             podcast = Podcast.select().where(name == name).get()
-            print("got new podcast", podcast)
         return podcast
 
     def add_new_episode_data(self, podcast_name, title, date, url):
+        if not podcast_name or not title or not date or not url:
+            raise AttributeError
         try:
             # fred = datetime.datetime.now()
             podcast = Podcast.select().where(Podcast.name == podcast_name).get()
-            print(f"adding {title} with url={url} to {podcast} with {date}")
             episode = Episode(
                 podcast=podcast,
                 title="title",
@@ -107,15 +107,13 @@ class PodcastDatabase(object):
             episode.save()
             return episode
         except Exception as ex:
-            print(f"Failed adding episode {title}: {ex}")
+            raise ValueError
 
     def find_episodes(self, table, state):
         podcast = Podcast.select().where(Podcast.name == table).get()
-        print(podcast.name)
 
         episodes = list()
         for ep in Episode.select().join(Podcast).where(Episode.state == state):
-            print(ep.title, ep.podcast.name)
             episodes.append(ep)
 
         return episodes
@@ -126,7 +124,35 @@ class PodcastDatabase(object):
     def find_episodes_to_download(self, table):
         return self.find_episodes(table, 0)
 
+    def get_podcast_names(self):
+        return [podcast.name for podcast in Podcast.select()]
 
+    def get_podcast_urls(self):
+        """Return a list of (url, throttle, last_update_ tuples.  """
+        return [(p.url, p.throttle, p.last_update) for p in Podcast.select()] 
+
+    def delete_podcast(self, name):
+        """Delete a podcast from the main table.  Also drops the episode table
+           for this podcast.
+        """
+        try:
+            podcast = Podcast.select().where(Podcast.name == name).get()
+            podcast.delete_instance(recursive=True)
+        except pw.DoesNotExist as ex:
+            raise ValueError
+
+    def mark_episode_downloaded(self, episode):
+        episode.state = 1
+        episode.save()
+
+    def mark_episode_on_mp3_player(self, episode):
+        episode.state = 2
+        episode.save()
+
+
+"""
+JHA keeping this for time being until I get rest of system built around 
+the database layer. 07/07/2019
 def populate():
     with PodcastDatabase("new_rss.db") as db:
         db.add_podcast("This American Life", "url", 0)
@@ -147,25 +173,16 @@ def populate():
             "This American Life", "tal ep5", date, "tal url7"
         )
 
-
 if __name__ == "__main__":
     populate()
     with PodcastDatabase("new_rss.db") as db:
-        #     print("inside cm")
         db.show_all_episodes()
         # db.show_names()
         # db.show_podcasts()
 
-"""
     def find_episodes(self, table, state):
-    def mark_episode_downloaded(self, episode):
-    def mark_episode_on_mp3_player(self, episode):
     def _update_size(self, table, title, size):
     def _update_state(self, table, title, state):
-    def get_podcast_urls(self):
-    def delete_podcast(self, name):
-    def get_podcast_names(self):
-    def convert_to_new_version(self, old_version, current_version):
 
 ################################################################################
 # list podcasts
