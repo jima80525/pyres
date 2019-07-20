@@ -163,13 +163,8 @@ class PodcastDatabase(object):
         episode.save()
 
 
-    def mark_episode_on_mp3_player(self, episode):
-        episode.state = 2
-        episode.save()
-
-
 """
-JHA keeping this for time being until I get rest of system built around 
+JHA keeping this for time being until I get rest of system built around
 the database layer. 07/07/2019
 def populate():
     with PodcastDatabase("new_rss.db") as db:

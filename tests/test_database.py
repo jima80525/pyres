@@ -7,10 +7,6 @@ import datetime
 import peewee
 import pytest
 from pyres.database import PodcastDatabase
-import pyres.database 
-
-# import pyres.episode
-# from mock import patch
 
 # this is coupled into at least one test
 _FILLED_TABLE_NAME = "filled_table"
