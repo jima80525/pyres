@@ -5,7 +5,8 @@ from invoke import run
 from invoke import task
 from invoke import exceptions
 import pytest
-import setuptools
+
+# import setuptools
 import sys
 
 PROJECT_FILES = ["pyres", "tests", "tasks.py", "setup.py"]
@@ -97,7 +98,9 @@ def add_sciam():
 
 @task
 def build(c):
-    setuptools.sandbox.run_setup("setup.py", ["clean", "bdist_wheel"])
+    """ JHA Does not work currently """
+    print("To be developed")
+    # setuptools.sandbox.run_setup("setup.py", ["clean", "bdist_wheel"])
 
 
 @task

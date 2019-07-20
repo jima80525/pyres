@@ -3,7 +3,7 @@ import pytest
 import errno
 import pyres.utils
 from mock import patch
-from mock import Mock
+# from mock import Mock
 
 
 class TestMkdir(object):

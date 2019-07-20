@@ -1,5 +1,4 @@
 """ Test test """
-from __future__ import print_function
 import os
 import sys
 import stat
@@ -95,6 +94,37 @@ class TestOpen(object):
         with pytest.raises(AttributeError):
             PodcastDatabase(None)
 
+    def test_rollback(self, filledfile):  # pylint: disable=W0621
+        """ Test that an exception raised inside a 'with' clause causes a
+        rollback of the database. """
+        assert self
+        # first add podcast with one episode
+        with PodcastDatabase(filledfile) as _database:
+            names = _database.get_podcast_names()
+            assert len(names) == 1
+            assert _FILLED_TABLE_NAME in names
+            episodes = _database.find_episodes_to_download(_FILLED_TABLE_NAME)
+            assert len(episodes) == 2
+
+        # now add one but throw exception in the with block
+        with pytest.raises(Exception):
+            with PodcastDatabase(filledfile) as _database:
+                # make one of the episodes as downloaded
+                _database.mark_episode_downloaded(episodes[0])
+                new_list = _database.find_episodes_to_download(
+                    _FILLED_TABLE_NAME
+                )
+                # confirm that we now think there's only 1 left to download
+                assert len(new_list) == 1
+                # raise the exception to roll us back
+                raise Exception
+
+        # end the with block and re-open the database
+        with PodcastDatabase(filledfile) as _database:
+            # should still have 2 to download
+            new_list = _database.find_episodes_to_download(_FILLED_TABLE_NAME)
+            assert len(new_list) == 2
+
     def test_commit(self, emptyfile):  # pylint: disable=W0621
         """ Test that changes are committed to the database """
         assert self
@@ -183,12 +213,8 @@ class TestDeletePodcast(object):
         assert self
         with PodcastDatabase(emptyfile) as _database:
             assert _database
-            pytest.raises(
-                ValueError, _database.delete_podcast, None
-            )
-            pytest.raises(
-                ValueError, _database.delete_podcast, "name"
-            )
+            pytest.raises(AttributeError, _database.delete_podcast, None)
+            pytest.raises(AttributeError, _database.delete_podcast, "name")
 
     def test_add_then_delete(self, emptyfile):  # pylint: disable=W0621
         """ test setting bad parameters on add command """
@@ -203,19 +229,30 @@ class TestDeletePodcast(object):
             _database.delete_podcast(table_name)
             names = _database.get_podcast_names()
             assert len(names) == 0
-            pytest.raises(
-                ValueError, _database.delete_podcast, table_name
-            )
+            pytest.raises(AttributeError, _database.delete_podcast, table_name)
 
     def test_add_episode_then_delete(self, emptyfile):  # pylint: disable=W0621
         """ test setting bad parameters on add command """
         assert self
-        assert emptyfile
         table_name = "podcast_name"
         with PodcastDatabase(emptyfile) as _database:
             _database.add_podcast(table_name, "url", sys.maxsize)
-            add_and_check(_database, table_name, "title1", datetime.datetime.now(), "link1", 1)
-            add_and_check(_database, table_name, "title2", datetime.datetime.now(), "link2", 2)
+            add_and_check(
+                _database,
+                table_name,
+                "title1",
+                datetime.datetime.now(),
+                "link1",
+                1,
+            )
+            add_and_check(
+                _database,
+                table_name,
+                "title2",
+                datetime.datetime.now(),
+                "link2",
+                2,
+            )
             _database.delete_podcast(table_name)
 
 
@@ -227,45 +264,92 @@ class TestAddEpisode(object):
         assert self
         with PodcastDatabase(emptyfile) as _database:
             # test bad params
+            # def add_new_episode_data(self, podcast_name, title, date, url):
             pytest.raises(
-                AttributeError, _database.add_new_episode_data, None, None, None, None
-            )
-            pytest.raises(
-                AttributeError, _database.add_new_episode_data, "table", None, None, None
-            )
-            pytest.raises(
-                AttributeError, _database.add_new_episode_data, None, "episode", None, None
-            )
-            pytest.raises(
-                AttributeError, _database.add_new_episode_data, None, None, "date", None
-            )
-            pytest.raises(
-                AttributeError, _database.add_new_episode_data, None, None, None, "url"
-            )
-
-            _database.add_podcast("table", "url", sys.maxsize)
-            # real episode with bad table name
-            pytest.raises(
-                ValueError,
+                AttributeError,
                 _database.add_new_episode_data,
-                "tle",
+                None,
+                None,
+                None,
+                None,
+            )
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                "table",
+                None,
+                None,
+                None,
+            )
+            current = datetime.datetime.now()
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                "table",
                 "title",
-                datetime.datetime.now(),
-                "link"
+                None,
+                None,
+            )
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                "table",
+                "title",
+                current,
+                None,
+            )
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                "table",
+                "title",
+                None,
+                "url",
+            )
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                "table",
+                None,
+                current,
+                "url",
+            )
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                None,
+                "title",
+                current,
+                "url",
             )
 
-    def test_add_episode(self, emptyfile):  # pylint: disable=W0621
+            pytest.raises(
+                AttributeError,
+                _database.add_new_episode_data,
+                "not real",
+                "title",
+                current,
+                "url",
+            )
+
+    def test_add_same_episode(self, emptyfile):  # pylint: disable=W0621
         """ Tests for add episode data function """
         assert self
         table_name = "name"
         with PodcastDatabase(emptyfile) as _database:
             assert _database
             _database.add_podcast(table_name, "url", sys.maxsize)
+            current = datetime.datetime.now()
             # add a valid episode
-            add_and_check(_database, table_name, "title", datetime.datetime.now(), "link")
+            add_and_check(_database, table_name, "title1", current, "link1", 1)
             # add it again - make sure there's only one
             pytest.raises(
-                ValueError, add_and_check, _database, table_name, "title", datetime.datetime.now(), "link"
+                AttributeError,
+                _database.add_new_episode_data,
+                table_name,
+                "title1",
+                current,
+                "link1",
             )
 
 
@@ -282,7 +366,6 @@ class TestState(object):
 
     def test_add_without_state(self, filledfile):  # pylint: disable=W0621
         """ test that un-modified episodes are in 'to be downloaded' state """
-        assert self
         with PodcastDatabase(filledfile) as _database:
             assert _database
 
@@ -332,7 +415,7 @@ class TestGetUrls(object):
         with PodcastDatabase(emptyfile) as _database:
             assert _database
             names = _database.get_podcast_urls()
-            assert len(names) == 0
+            assert not names
 
     def test_on_full_file(self, filledfile):  # pylint: disable=W0621
         """  tests function against an full database """
@@ -367,7 +450,7 @@ class TestShowMethods(object):
             assert _database
             _database.show_podcasts()
             out, _ = capsys.readouterr()
-            assert out.startswith("Podcast details")
+            assert out.startswith("Podcast details in database")
 
     def test_show_episodes(self, capsys, filledfile):  # pylint: disable=W0621
         """  tests the show_all_episodes function """
@@ -376,9 +459,4 @@ class TestShowMethods(object):
             assert _database
             _database.show_all_episodes()
             out, _ = capsys.readouterr()
-            print("out is", out)
-            print("over and out")
-            assert (
-                out.startswith("Podcast details in database:\n"
-                "  *  filled_table")
-            )
+            assert out.startswith("Podcast details in database")

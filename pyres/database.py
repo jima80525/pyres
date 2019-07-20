@@ -43,13 +43,14 @@ class PodcastDatabase(object):
         # JHA TODO figure out how to use it as a stand-alone object
 
     def __enter__(self):
+        DATABASE.session_start()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         if not exception_type:
-            DATABASE.commit()
+            DATABASE.session_commit()
         else:
-            DATABASE.rollback()
+            DATABASE.session_rollback()
 
         DATABASE.close()
 
@@ -86,12 +87,25 @@ class PodcastDatabase(object):
             )
             podcast.save()
         except Exception:
-            podcast = Podcast.select().where(name == name).get()
+            print(f"Failed adding {name}. Podcast with same url exists.")
+
         return podcast
+
+    def delete_podcast(self, name):
+        if not name:
+            raise AttributeError()
+
+        try:
+            podcast = Podcast.select().where(Podcast.name == name).get()
+        except Exception:
+            raise AttributeError()
+
+        podcast.delete_instance()
 
     def add_new_episode_data(self, podcast_name, title, date, url):
         if not podcast_name or not title or not date or not url:
-            raise AttributeError
+            raise AttributeError()
+
         try:
             # fred = datetime.datetime.now()
             podcast = Podcast.select().where(Podcast.name == podcast_name).get()
@@ -106,12 +120,10 @@ class PodcastDatabase(object):
             )
             episode.save()
             return episode
-        except Exception as ex:
-            raise ValueError
+        except Exception:
+            raise AttributeError()
 
     def find_episodes(self, table, state):
-        podcast = Podcast.select().where(Podcast.name == table).get()
-
         episodes = list()
         for ep in Episode.select().join(Podcast).where(Episode.state == state):
             episodes.append(ep)
@@ -125,25 +137,31 @@ class PodcastDatabase(object):
         return self.find_episodes(table, 0)
 
     def get_podcast_names(self):
-        return [podcast.name for podcast in Podcast.select()]
+        """Return a list of podcasts."""
+        podcasts = Podcast.select().order_by(Podcast.name)
+        return [podcast.name for podcast in podcasts]
 
     def get_podcast_urls(self):
-        """Return a list of (url, throttle, last_update_ tuples.  """
-        return [(p.url, p.throttle, p.last_update) for p in Podcast.select()] 
-
-    def delete_podcast(self, name):
-        """Delete a podcast from the main table.  Also drops the episode table
-           for this podcast.
-        """
-        try:
-            podcast = Podcast.select().where(Podcast.name == name).get()
-            podcast.delete_instance(recursive=True)
-        except pw.DoesNotExist as ex:
-            raise ValueError
+        # """ Returns a list of [url, latest_date] tuples for each podcast """
+        podcasts = Podcast.select().order_by(Podcast.name)
+        return [
+            (podcast.url, podcast.throttle, podcast.last_update)
+            for podcast in podcasts
+        ]
 
     def mark_episode_downloaded(self, episode):
         episode.state = 1
         episode.save()
+
+    def mark_episode_on_mp3_player(self, episode):
+        episode.state = 2
+        episode.save()
+
+    # JHA TODO - perhaps we can add these directly to Episode??
+    def update_size(self, episode, size):
+        episode.size = size
+        episode.save()
+
 
     def mark_episode_on_mp3_player(self, episode):
         episode.state = 2
@@ -181,8 +199,7 @@ if __name__ == "__main__":
         # db.show_podcasts()
 
     def find_episodes(self, table, state):
-    def _update_size(self, table, title, size):
-    def _update_state(self, table, title, state):
+    def convert_to_new_version(self, old_version, current_version):
 
 ################################################################################
 # list podcasts
