@@ -157,7 +157,6 @@ class PodcastDatabase(object):
         episode.state = 2
         episode.save()
 
-    # JHA TODO - perhaps we can add these directly to Episode??
     def update_size(self, episode, size):
         episode.size = size
         episode.save()
