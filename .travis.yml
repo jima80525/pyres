@@ -8,7 +8,7 @@ install:
   - pip install -r requirements.txt
 # command to run tests
 script:
-  - pytest tests
+  - inv test
 sudo: true
 notifications:
   email:
