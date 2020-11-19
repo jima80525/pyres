@@ -1,5 +1,7 @@
 import pytest  # noqa: F401
-import pyres.download
+
+# import pyres.download
+import requests
 
 
 @pytest.fixture
@@ -23,6 +25,15 @@ def episodes():
     ]
 
 
+def test_url(requests_mock):
+    requests_mock.get("http://test.com", text="data is real")
+    # assert 'data' == requests.get('http://test.com').text
+    data = requests.get("http://test.com").text
+    assert data == "data is real"
+    print(f"data is {data}")
+
+
+"""
 class TestClass(object):
     def test_one(self, episodes):
         print("ONE")
@@ -33,10 +44,12 @@ class TestClass(object):
         passed, failed = pyres.download.Downloader().download_episodes(episodes)
         print(f"passed {passed}")
         print(f"failed {failed}")
-        # assert False
+        assert False
 
     def test_two(self):
         print("TWO")
         x = "hello"
         assert "l" in x
         # assert hasattr(x, 'check')
+
+"""

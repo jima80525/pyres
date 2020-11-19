@@ -13,61 +13,61 @@ class Downloader:
         self.failed_files = list()
         self.successful_files = list()
 
-    async def download_site(self, episode, overall_bar, position):
+    async def _download_site(self, episode, progbar, overall_bar):
         url, filename = episode
         name = url.replace("/", " ").split()[-1]
         try:
             async with await asks.get(url, stream=True) as req:
                 file_size = int(req.headers["Content-Length"])
-                progbar = tqdm.tqdm(
-                    total=file_size, position=position, desc=name
-                )
                 with open(filename, "wb") as podcast_file:
                     async for chunk in req.body:
-                        progbar.update(len(chunk))
+                        progbar.update(100 * len(chunk) / file_size)
                         podcast_file.write(chunk)
-                progbar.close()
                 self.successful_files.append(name)
-        except Exception:
-            self.failed_files.append(name)
-            progbar = tqdm.tqdm(
-                total=1, position=position, desc=f"{name} - ERROR"
-            )
             progbar.update(1)
-            progbar.close()
+            progbar.set_description(f"{name} = COMPLETE")
+        except Exception as ex:
+            self.failed_files.append(name + str(ex))
+            progbar.set_description(f"{name} - ERROR")
+            progbar.update(100)
         finally:
+            progbar.close()
             overall_bar.update(1)
 
-    async def download_all_files(self, sites):
+    async def _download_all_files(self, sites):
         progbar = tqdm.tqdm(total=len(sites), position=0, desc="total files")
         progbar.update(0)
         async with trio.open_nursery() as nursery:
             for index, episode in enumerate(sites, start=1):
-                nursery.start_soon(self.download_site, episode, progbar, index)
-
+                name = episode[0].replace("/", " ").split()[-1]
+                bar = tqdm.tqdm(total=100, position=index, desc=name)
+                nursery.start_soon(self._download_site, episode, bar, progbar)
         progbar.close()
 
     def download_episodes(self, sites):
-        trio.run(self.download_all_files, sites)
+        trio.run(self._download_all_files, sites)
         return self.successful_files, self.failed_files
 
 
 if __name__ == "__main__":
     sites = [
+        # (
+        # "http://thehistoryofrome.com/lib/audio/1-in-the-beginning.mp3",
+        # "one.mp3",
+        # ),
         (
-            "http://thehistoryofrome.com/lib/audio/1-in-the-beginning.mp3",
-            "one.mp3",
-        ),
-        (
-            "http://thehistoryofrome.com/lib/audio/2-youthful-indiscretions.mp3",
+            "https://traffic.libsyn.com/historyofrome/"
+            "167-_Exploiting_the_Opportunity.mp3",
             "two.mp3",
         ),
-        (
-            "http://jdflakdsjfistorye.com/lib/audio/2-youthful-indiscretions.mp3",
-            "three.mp3",
-        ),
-        ("http://www.jython.org", "four.mp3"),
-        ("http://olympus.realpython.org/dice", "five.mp3"),
+        # (
+        # 'https://traffic.libsyn.com/historyofrome/166-_As_Long_As_Shes_Nice_to_Look_At.mp3',
+        # "three.mp3",
+        # ),
+        # ("http://olympus.realpython.org/dice", "five.mp3"),
+        # ("http://olympus.realpython.org/dice", "aive.mp3"),
+        # ("http://olympus.realpython.org/dice", "bive.mp3"),
+        # ("http://olympus.realpythn.org/dice", "cive.mp3"),
     ]
     t1 = time.time()
     passed, failed = Downloader().download_episodes(sites)

@@ -5,9 +5,6 @@ Todo list for Pyres
 *  Convert database access to peewee
 *  https://peewee.readthedocs.org/en/latest/peewee/installation.html
 *
-*  Check out enaml
-*  https://github.com/nucleic/enaml
-*
 *  Update docs - look into sphinx and how it works
 
 Features to be added:
@@ -19,4 +16,11 @@ Features to be added:
 * way to see how long each episode is - and how much time is being downloaded -
   maybe how much time in each state
 * GUI
+
+# this needs to get added to the download code when we're pulling down files
+from slugify import slugify
+    # create the directory for the stored files
+    podcast_name = slugify(podcast_name)
+    podcast_path_name = base_dir / podcast_name
+    podcast_path_name.mkdir(exist_ok=True)
 
