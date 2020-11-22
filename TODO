@@ -24,3 +24,12 @@ from slugify import slugify
     podcast_path_name = base_dir / podcast_name
     podcast_path_name.mkdir(exist_ok=True)
 
+TEMP todo list
+* add wiley
+* add docs and possibly sphinx
+* get tox running
+* set up separate doc page (rtfd?)
+* update readme and make it less base_dir
+* asyncio testing and use: https://www.roguelynn.com/words/asyncio-we-did-it-wrong/
+* get full CI running
+* upload first release to pypi!!!
