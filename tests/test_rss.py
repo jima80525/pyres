@@ -3,7 +3,8 @@ import dateutil.parser
 import dateutil.utils
 import sys
 import pytest
-from pyres.rss import get_episode_list, SiteData
+from pyres import get_episode_list
+from pyres import SiteData
 from mock import patch
 
 
