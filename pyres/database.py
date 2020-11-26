@@ -5,6 +5,14 @@ import peewee as pw
 DATABASE = pw.SqliteDatabase(None)
 
 
+class PodcastExistsException(Exception):
+    pass
+
+
+class PodcastDoesNotExistException(Exception):
+    pass
+
+
 class BaseModel(pw.Model):
     class Meta:
         database = DATABASE
@@ -68,11 +76,14 @@ class PodcastDatabase(object):
             for episode in podcast.episodes:
                 print("      *", episode.title)
 
-    def show_podcasts(self):
+    def show_podcasts(self, all):
         """ show entries in the podcasts table """
+        if all:
+            return self.show_all_episodes()
+
         query = Podcast.select().order_by(Podcast.name)
         for podcast in query:
-            print(podcast.name, podcast.throttle, podcast.url)
+            print(f"'{podcast.name}' {podcast.throttle} {podcast.url}")
 
     def add_podcast(self, name, url, throttle):
         if not name or not url:
@@ -87,7 +98,7 @@ class PodcastDatabase(object):
             )
             podcast.save()
         except Exception:
-            print(f"Failed adding {name}. Podcast with same url exists.")
+            raise PodcastExistsException
 
         return podcast
 
@@ -96,27 +107,32 @@ class PodcastDatabase(object):
             raise AttributeError()
 
         try:
+            podcast_episodes = Podcast.select(Podcast.id).where(
+                Podcast.name == name
+            )
+            Episode.delete().where(
+                Episode.podcast_id.in_(podcast_episodes)
+            ).execute()
             podcast = Podcast.select().where(Podcast.name == name).get()
+            podcast.delete_instance()
         except Exception:
-            raise AttributeError()
+            raise PodcastDoesNotExistException
 
-        podcast.delete_instance()
-
-    def add_new_episode_data(self, podcast_name, title, date, url):
-        if not podcast_name or not title or not date or not url:
+    # def add_new_episode_data(self, podcast_name, title, date, url):
+    def add_new_episode_data(self, podcast_name, episode):
+        if not podcast_name or not episode:
             raise AttributeError()
 
         try:
-            # fred = datetime.datetime.now()
             podcast = Podcast.select().where(Podcast.name == podcast_name).get()
             episode = Episode(
                 podcast=podcast,
-                title="title",
-                date=date,
+                title=episode.title,
+                date=episode.date,
                 file="",
                 size=0,
                 state=0,
-                url=url,
+                url=episode.link,
             )
             episode.save()
             return episode
