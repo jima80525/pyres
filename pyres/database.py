@@ -1,8 +1,28 @@
 #!/usr/bin/env python3
 import datetime
 import peewee as pw
+import dateutil
+from .consts import BASEDATE, BASEDIR
+from slugify import slugify
+import pathlib
 
 DATABASE = pw.SqliteDatabase(None)
+
+
+def _make_date(strdate):
+    return dateutil.utils.default_tzinfo(
+        dateutil.parser.parse(strdate), dateutil.tz.UTC
+    )
+
+
+def _make_path(podcast, title):
+    base_dir = pathlib.Path(BASEDIR)
+    # create the directory for the stored files
+    podcast_name = slugify(podcast)
+    podcast_path_name = base_dir / podcast_name
+    podcast_path_name.mkdir(exist_ok=True)
+    filename = podcast_path_name / slugify(title)
+    return str(filename) + ".mp3"
 
 
 class PodcastExistsException(Exception):
@@ -30,7 +50,6 @@ class Episode(BaseModel):
     title = pw.TextField()
     date = pw.DateTimeField()
     file = pw.TextField(null=True)
-    size = pw.IntegerField(null=True)
     state_choices = ((0, "unknown"), (1, "downloaded"), (2, "on player"))
     state = pw.IntegerField(choices=state_choices)
     url = pw.TextField(unique=True)
@@ -45,10 +64,8 @@ class PodcastDatabase(object):
             raise AttributeError()
 
         DATABASE.init(file_name)
-
         DATABASE.connect()
         DATABASE.create_tables([Podcast, Episode])
-        # JHA TODO figure out how to use it as a stand-alone object
 
     def __enter__(self):
         DATABASE.session_start()
@@ -91,10 +108,7 @@ class PodcastDatabase(object):
 
         try:
             podcast = Podcast(
-                name=name,
-                url=url,
-                throttle=throttle,
-                last_update=datetime.datetime.now(),
+                name=name, url=url, throttle=throttle, last_update=BASEDATE
             )
             podcast.save()
         except Exception:
@@ -125,12 +139,15 @@ class PodcastDatabase(object):
 
         try:
             podcast = Podcast.select().where(Podcast.name == podcast_name).get()
+            last_date = _make_date(podcast.last_update)
+            if episode.date > last_date:
+                podcast.last_update = episode.date
+                podcast.save()
             episode = Episode(
                 podcast=podcast,
                 title=episode.title,
                 date=episode.date,
-                file="",
-                size=0,
+                file=_make_path(podcast.name, episode.title),
                 state=0,
                 url=episode.link,
             )
@@ -149,8 +166,9 @@ class PodcastDatabase(object):
     def find_episodes_to_copy(self, table):
         return self.find_episodes(table, 1)
 
-    def find_episodes_to_download(self, table):
-        return self.find_episodes(table, 0)
+    def find_episodes_to_download(self):
+        episodes = Episode.select().where(Episode.state == 0)
+        return [(ep.url, ep.file) for ep in episodes]
 
     def get_podcast_names(self):
         """Return a list of podcasts."""
@@ -160,23 +178,21 @@ class PodcastDatabase(object):
     def get_podcast_urls(self):
         # """ Returns a list of [url, latest_date] tuples for each podcast """
         podcasts = Podcast.select().order_by(Podcast.name)
-        return [
-            (podcast.url, podcast.throttle, podcast.last_update)
-            for podcast in podcasts
-        ]
+        res = []
+        for podcast in podcasts:
+            date = _make_date(podcast.last_update)
+            res.append((podcast.url, podcast.throttle, date))
+        return res
 
     def mark_episode_downloaded(self, episode):
-        episode.state = 1
-        episode.save()
+        ep = Episode.select().where(Episode.url == episode).get()
+        ep.state = 1
+        ep.save()
 
     def mark_episode_on_mp3_player(self, episode):
-        episode.state = 2
-        episode.save()
-
-    # JHA TODO - perhaps we can add these directly to Episode??
-    def update_size(self, episode, size):
-        episode.size = size
-        episode.save()
+        ep = Episode.select().where(Episode.file == episode).get()
+        ep.state = 2
+        ep.save()
 
 
 """

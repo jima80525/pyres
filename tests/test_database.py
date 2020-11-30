@@ -7,6 +7,7 @@ import stat
 # import datetime
 import peewee
 import pytest
+from pyres.consts import BASEDATE
 from pyres.database import (
     PodcastDatabase,
     PodcastExistsException,
@@ -37,22 +38,16 @@ def emptyfile(request):
 @pytest.fixture
 def episodes(request):
     eps = []
-    date = dateutil.parser.parse("1/1/1970")
-    date = dateutil.utils.default_tzinfo(date, dateutil.tz.UTC)
-    episode = EpData(date, "title1", "link1")
-    eps.append(episode)
-    date = "1/2/1970"
-    date = dateutil.parser.parse(date)
-    date = dateutil.utils.default_tzinfo(date, dateutil.tz.UTC)
-    episode = EpData(date, "title2", "link2")
-    eps.append(episode)
+    for index in range(3):
+        date = BASEDATE + dateutil.relativedelta.relativedelta(days=index)
+        episode = EpData(date, f"title{index}", f"link{index}")
+        eps.append(episode)
     return eps
 
 
 @pytest.fixture
 def bad_episodes(request):
-    date = dateutil.parser.parse("1/1/1970")
-    date = dateutil.utils.default_tzinfo(date, dateutil.tz.UTC)
+    date = BASEDATE
     return [
         EpData(None, "t", "l"),
         EpData(date, None, "l"),
@@ -78,7 +73,7 @@ def add_and_check(database, table_name, episode, expected=1):
     """ utility to add episode and ensure there is a single episode for that
     podcast """
     assert database.add_new_episode_data(table_name, episode)
-    eps = database.find_episodes_to_download(table_name)
+    eps = database.find_episodes_to_download()
     assert len(eps) == expected
     eps = database.find_episodes_to_copy(table_name)
     assert len(eps) == 0
@@ -126,16 +121,14 @@ class TestOpen(object):
             names = _database.get_podcast_names()
             assert len(names) == 1
             assert _FILLED_TABLE_NAME in names
-            episodes = _database.find_episodes_to_download(_FILLED_TABLE_NAME)
+            episodes = _database.find_episodes_to_download()
             assert len(episodes) == 2
         # now add one but throw exception in the with block
         with pytest.raises(Exception):
             with PodcastDatabase(filledfile) as _database:
                 # make one of the episodes as downloaded
                 _database.mark_episode_downloaded(episodes[0])
-                new_list = _database.find_episodes_to_download(
-                    _FILLED_TABLE_NAME
-                )
+                new_list = _database.find_episodes_to_download()
                 # confirm that we now think there's only 1 left to download
                 assert len(new_list) == 1
                 # raise the exception to roll us back
@@ -144,7 +137,7 @@ class TestOpen(object):
         # end the with block and re-open the database
         with PodcastDatabase(filledfile) as _database:
             # should still have 2 to download
-            new_list = _database.find_episodes_to_download(_FILLED_TABLE_NAME)
+            new_list = _database.find_episodes_to_download()
             assert len(new_list) == 2
 
     def test_commit(self, emptyfile):  # pylint: disable=W0621

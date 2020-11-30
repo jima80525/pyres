@@ -23,7 +23,7 @@ class Downloader:
                     async for chunk in req.body:
                         progbar.update(100 * len(chunk) / file_size)
                         podcast_file.write(chunk)
-                self.successful_files.append(name)
+                self.successful_files.append(url)
             progbar.update(1)
             progbar.set_description(f"{name} = COMPLETE")
         except Exception as ex:

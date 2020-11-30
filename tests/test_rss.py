@@ -4,6 +4,7 @@ import dateutil.utils
 import sys
 import pytest
 from pyres import get_episode_list
+from pyres import confirm_podcast
 from pyres import SiteData
 from mock import patch
 
@@ -292,7 +293,7 @@ class TestRss(object):
             assert len(episodes) == expected
 
     @patch("pyres.rss.feedparser.parse")
-    def test_rss_start_date_with_db(self, feedparser, largefeed, site):
+    def test_rss_start_date_singles(self, feedparser, largefeed, site):
         """  Test that throttle function works in conjunction with start date
         """
         # set up the mode for feedparser
@@ -325,3 +326,16 @@ class TestRss(object):
         assert name == u"99% Invisible"
         assert episodes[0].title.decode("utf-8") == "3 - title 3"
         assert len(episodes) == 2
+
+    @patch("pyres.rss.feedparser.parse")
+    def test_add_confirm_good_and_bad(self, feedparser, basicfeed):
+        # set up the mode for feedparser
+        feedparser.return_value = basicfeed
+
+        name = confirm_podcast("noop")
+        assert name == u"99% Invisible"
+
+        del basicfeed["channel"]
+        feedparser.return_value = basicfeed
+        name = confirm_podcast("noop")
+        assert not name

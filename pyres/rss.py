@@ -92,45 +92,63 @@ def get_episode_list(data, site):
     return name, episodes
 
 
+def confirm_podcast(data):
+    feed = feedparser.parse(data)
+
+    # some feeds have ill formed entries. Skip them
+    if (
+        "items" not in feed
+        or "channel" not in feed
+        or "title" not in feed["channel"]
+    ):
+        return None
+
+    return feed["channel"]["title"]
+
+
 class RssDownloader:
     """ Manage the rss download and parsing """
 
     def __init__(self, sites: SiteData):
-        self.failed_files = []
+        self.failed = []
         self.results = {}
         self.sites = sites
 
-    async def _download_site(self, site, overall_bar):
+    async def _download_site(self, site, overall_bar, get_episodes=True):
         try:
             async with await asks.get(site.url) as req:
-                name, episodes = get_episode_list(req.content, site)
+                if get_episodes:
+                    name, episodes = get_episode_list(req.content, site)
+                else:
+                    name = confirm_podcast(req.content)
+                    episodes = True  # placeholder
                 if name and episodes:
                     self.results[name] = episodes
                 else:
                     self.failed.append(site.url)
         except Exception as ex:
-            self.failed_files.append(site.url + ":" + str(ex))
+            self.failed.append(site.url + ":" + str(ex))
         finally:
             overall_bar.update(1)
 
-    async def _download_all_sites(self):
+    async def _download_all_sites(self, get_episodes):
         progbar = tqdm.tqdm(total=len(self.sites), position=0, desc="rss feeds")
         progbar.update(0)
         async with trio.open_nursery() as nursery:
             for site in self.sites:
-                nursery.start_soon(self._download_site, site, progbar)
+                nursery.start_soon(
+                    self._download_site, site, progbar, get_episodes
+                )
         progbar.close()
 
     def download_episodes(self):
-        trio.run(self._download_all_sites)
-        return self.results, self.failed_files
+        trio.run(self._download_all_sites, True)
+        return self.results, self.failed
 
-
-if __name__ == "__main__":
-    # JHA TODO - this needs to be used in the CLI to set a TZ for the start date
-    start_date = dateutil.parser.parse("1/1/1970")
-    start_date = dateutil.utils.default_tzinfo(start_date, dateutil.tz.UTC)
-    ss = SiteData("https://realpython.com/podcasts/rpp/feed", 10, start_date)
-    x, y = RssDownloader([ss]).download_episodes()
-    print(y)
-    print(x)
+    def add_podcast(self):
+        trio.run(self._download_all_sites, False)
+        # this is a hack to get the single podcast name, if any
+        if self.results:
+            return next(iter(self.results))
+        else:
+            return None

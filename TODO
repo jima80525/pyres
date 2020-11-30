@@ -17,14 +17,8 @@ Features to be added:
   maybe how much time in each state
 * GUI
 
-# this needs to get added to the download code when we're pulling down files
-from slugify import slugify
-    # create the directory for the stored files
-    podcast_name = slugify(podcast_name)
-    podcast_path_name = base_dir / podcast_name
-    podcast_path_name.mkdir(exist_ok=True)
-
 TEMP todo list
+* Fix up format of TQDM progress bars while downloading
 * add wiley
 * add docs and possibly sphinx
 * get tox running

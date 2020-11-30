@@ -8,6 +8,7 @@ from .database import (
     PodcastExistsException,
     PodcastDoesNotExistException,
 )
+from .download import Downloader
 
 DBFILE = "rss.db"
 
@@ -44,21 +45,18 @@ def add(start_date, max_update, url):
 
     click.echo(f"adding {start_date} {url} max:{max_update}")
     pod = SiteData(url, max_update, start_date)
-    episodes, errors = RssDownloader([pod]).download_episodes()
+    podcast = RssDownloader([pod]).add_podcast()
 
     # Add to database
-    with PodcastDatabase(DBFILE) as _database:
-        for podcast, episodes in episodes.items():
+    if podcast:
+        with PodcastDatabase(DBFILE) as _database:
             try:
                 _database.add_podcast(podcast, url, max_update)
-                for episode in episodes:
-                    _database.add_new_episode_data(podcast, episode)
+                print(f"Added {podcast}")
             except PodcastExistsException:
                 print(f"Error: Podcast {podcast} already exists.")
-
-    # Report Errors
-    # JHA TODO add error reporting
-    # print("errors", errors)
+    else:
+        print(f"Failed to add {url}")
 
 
 @pyres.command()
@@ -75,6 +73,39 @@ def delete(name):
 @pyres.command()
 def update():
     click.echo(f"updating")
+    with PodcastDatabase(DBFILE) as _database:
+        podcasts = _database.get_podcast_urls()
+        total_added = 0
+        pods = [
+            SiteData(url, max_update, start_date)
+            for (url, max_update, start_date) in podcasts
+        ]
+        ep_list, errors = RssDownloader(pods).download_episodes()
+        for podcast, episodes in ep_list.items():
+            print(f"{podcast} - {len(episodes)} to download")
+            total_added += len(episodes)
+            for episode in episodes:
+                _database.add_new_episode_data(podcast, episode)
+        print()
+        print(f"There are a total of {total_added} new episodes to be updated.")
+
+    # Close the previous transaction and start a new one.  This has two benefits
+    #   1. It ensures that we store the data we collected from the rss query above
+    #   2. It retries previous episodes that failed to download
+    with PodcastDatabase(DBFILE) as _database:
+        episodes = _database.find_episodes_to_download()
+        if episodes:
+            downloader = Downloader()
+            success, fail = downloader.download_episodes(episodes)
+            for episode in success:
+                _database.mark_episode_downloaded(episode)
+            if fail:
+                print("failed to download:")
+                for f in fail:
+                    print(f"   {f}")
+            print("\n" * len(episodes))
+        else:
+            print("Nothing to update")
 
 
 @pyres.command()
