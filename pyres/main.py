@@ -3,6 +3,7 @@ import click
 import dateutil
 import logging
 from .rss import RssDownloader, SiteData
+from .copier import copy_episodes_to_player
 from .database import (
     PodcastDatabase,
     PodcastExistsException,
@@ -115,8 +116,13 @@ def update():
     default="/media/usb0/",
     help="path to filesystem on MP3 player",
 )
-def download(path):
-    click.echo(f"download to {path}")
+def copy(path):
+    click.echo(f"copy to {path}")
+    with PodcastDatabase(DBFILE) as _database:
+        episodes = _database.find_episodes_to_copy()
+        copy_episodes_to_player(path, episodes)
+        for episode in episodes:
+            _database.mark_episode_as_copied(episode)
 
 
 @pyres.command()

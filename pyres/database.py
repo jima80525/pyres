@@ -163,8 +163,11 @@ class PodcastDatabase(object):
 
         return episodes
 
-    def find_episodes_to_copy(self, table):
-        return self.find_episodes(table, 1)
+    def find_episodes_to_copy(self):
+        episodes = (
+            Episode.select().where(Episode.state == 1).order_by(Episode.date)
+        )
+        return [ep.file for ep in episodes]
 
     def find_episodes_to_download(self):
         episodes = Episode.select().where(Episode.state == 0)
@@ -189,7 +192,7 @@ class PodcastDatabase(object):
         ep.state = 1
         ep.save()
 
-    def mark_episode_on_mp3_player(self, episode):
+    def mark_episode_as_copied(self, episode):
         ep = Episode.select().where(Episode.file == episode).get()
         ep.state = 2
         ep.save()

@@ -75,7 +75,7 @@ def add_and_check(database, table_name, episode, expected=1):
     assert database.add_new_episode_data(table_name, episode)
     eps = database.find_episodes_to_download()
     assert len(eps) == expected
-    eps = database.find_episodes_to_copy(table_name)
+    eps = database.find_episodes_to_copy()
     assert len(eps) == 0
 
 
