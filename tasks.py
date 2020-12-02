@@ -41,6 +41,18 @@ def lint(c):
 
 
 @task
+def retest(c):
+    pytest.main(
+        [
+            "--lf",
+            "--tb=short",
+            # "--cov-report=term:skip-covered",
+            "tests",
+        ]
+    )
+
+
+@task
 def test(c):
     pytest.main(
         [
