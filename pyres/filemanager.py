@@ -83,7 +83,9 @@ class FileManager(object):
     def copy_episodes_to_player(self, episodes):
         """ Copies the episodes to the mp3 player """
         # make sure the podcast directory exists
-        podcast_dir = os.path.join(self.base_dir, "podcasts_" +
+        curname = os.getcwd()
+        pod_name = curname.split("/")[-1]
+        podcast_dir = os.path.join(self.base_dir, pod_name + "_" +
                                    utils.current_date_time_as_string())
         utils.mkdir_p(podcast_dir)
 
