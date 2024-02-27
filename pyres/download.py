@@ -7,6 +7,7 @@ from six.moves.urllib_error import URLError
 from six.moves import queue
 import time
 import os
+import requests
 import threading
 
 
@@ -44,30 +45,32 @@ class Downloader(threading.Thread):
         """ Download and write the file to disc """
         # open the url
         try:
-            handle = urlopen(episode.url)
+            r = requests.get(episode.url, stream=True)
         except URLError as err:
             self.send_error(episode, episode.url, err)
             return
 
         # check http status for success (2xx)
-        http_status = handle.getcode()
+        http_status = r.status_code
         if (200 > http_status) or (299 < http_status):
             self.send_error(episode, episode.url,
                             "HTTP STATUS: %s" % http_status)
             return
 
-        meta = handle.info()
-        episode.size = int(meta.getheaders("Content-Length")[0])
+        episode.size = int(r.headers["Content-Length"])
         total = 0
         try:
             with open(episode.file_name, "wb") as podcast_file:
-                while True:
-                    chunk = handle.read(1024)
-                    if not chunk:
+                for block in r.iter_content(1024):
+                    if not block:
                         break
-                    total = total + len(chunk)
-                    podcast_file.write(chunk)
+                    total = total + len(block)
+                    podcast_file.write(block)
                     self.send_status(total, episode)
+        except requests.exceptions.RequestException as e:  # This will catch ONLY Requests exceptions
+            print('REQUESTS ERROR:')
+            print(e)  # This should tell you more details about the error
+            self.send_error(episode, episode.file_name, e)
         except IOError as err:
             self.send_error(episode, episode.file_name, err)
 
@@ -139,8 +142,8 @@ class PodcastDownloader(object):
         self.queue = queue.Queue()
         self.out_queue = queue.Queue()
         self.status = DisplayStatus(self.num_threads, len(episodes))
-        self.failed_files = list()
-        self.successful_files = list()
+        self.failed_files = []
+        self.successful_files = []
 
     def download_url_list(self):
         """
