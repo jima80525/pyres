@@ -50,7 +50,7 @@ class FileManager(object):
     def __init__(self, base_dir):
         # set default value for mp3 player
         # base_dir = base_dir or "TestFiles"
-        base_dir = base_dir or "/media/jima/AGPTEK-U3/"
+        base_dir = base_dir or "/media/jima/U3/"
         self.base_dir = base_dir
         utils.mkdir_p(self.base_dir)
 
@@ -95,10 +95,11 @@ class FileManager(object):
             episode.file_name = episode.file_name.replace('\\', '/')
             (_, tail) = os.path.split(episode.file_name)
             newfile = os.path.join(podcast_dir, tail)
+            oldfile = os.path.join(curname, episode.file_name)
 
             logging.debug("copying %s to %s", episode.file_name, newfile)
             try:
-                shutil.copyfile(episode.file_name, newfile)
+                shutil.copyfile(oldfile, newfile)
             except IOError as ex:
                 logging.error("Failed to find %s: %s", episode.file_name, ex)
 
